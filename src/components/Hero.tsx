@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ArrowRight, Play, Heart, Star } from "lucide-react";
-import heroImage from "@/assets/hero-pets-premium.jpg";
 import FloatingElements from "./FloatingElements";
+import HeroCarousel from "./HeroCarousel";
 
 const Hero = () => {
   return (
@@ -10,38 +10,37 @@ const Hero = () => {
       {/* Gradient Mesh Background */}
       <div className="absolute inset-0 bg-gradient-mesh" />
       
-      {/* Hero Image with Parallax Effect */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 transform scale-110"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      />
+      {/* Dynamic Hero Carousel */}
+      <HeroCarousel />
       
       {/* Floating Elements */}
       <FloatingElements />
       
-      {/* Glass Overlay */}
-      <div className="absolute inset-0 bg-gradient-hero backdrop-blur-sm" />
+      {/* Enhanced Glass Overlay */}
+      <div className="absolute inset-0 bg-gradient-hero backdrop-blur-md" />
       
       <div className="relative z-20 container mx-auto px-4 text-center text-white">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Animated Main Heading */}
           <div className="space-y-6 animate-fade-in">
-            <h1 className="text-6xl md:text-8xl font-bold leading-tight tracking-tight">
-              Joy for them{" "}
-              <span className="bg-gradient-accent bg-clip-text text-transparent animate-pulse-slow">
+            <h1 className="text-6xl md:text-8xl font-bold leading-tight tracking-tight drop-shadow-2xl">
+              <span className="text-white">Joy for them{" "}</span>
+              <span className="bg-gradient-accent bg-clip-text text-transparent animate-pulse-slow drop-shadow-lg">
                 love from you
               </span>{" "}
-              only at{" "}
-              <span className="relative">
+              <span className="text-white">only at{" "}</span>
+              <span className="relative text-white">
                 Zippty
-                <div className="absolute -inset-2 bg-gradient-primary opacity-20 blur-lg rounded-full animate-pulse-slow" />
+                <div className="absolute -inset-2 bg-gradient-primary opacity-30 blur-xl rounded-full animate-pulse-slow" />
               </span>
             </h1>
             
-            <p className="text-2xl md:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed animate-slide-up">
-              At Zippty, we know your pets are more than just animals—they're family. 
-              Experience the future of pet care with our revolutionary interactive toys.
-            </p>
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 max-w-4xl mx-auto">
+              <p className="text-2xl md:text-3xl text-white leading-relaxed animate-slide-up">
+                At Zippty, we know your pets are more than just animals—they're family. 
+                Experience the future of pet care with our revolutionary interactive toys.
+              </p>
+            </div>
           </div>
 
           {/* Action Buttons */}

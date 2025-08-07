@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ShoppingCart, Menu } from "lucide-react";
+import zipptyLogo from "@/assets/zippty-logo.png";
 
 const Header = () => {
   return (
-    <header className="w-full backdrop-blur-2xl border-b border-white/10 sticky top-0 z-50">
-      <GlassCard intensity="light" className="border-0 border-b border-white/10 rounded-none">
+    <header className="w-full backdrop-blur-3xl border-b border-white/20 sticky top-0 z-50 bg-white/5">
+      <GlassCard intensity="heavy" className="border-0 border-b border-white/20 rounded-none backdrop-blur-xl bg-white/10 shadow-glass">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent hover:scale-105 transition-transform duration-300 cursor-pointer">
-              Zippty
-            </h1>
+          <div className="flex items-center">
+            <img 
+              src={zipptyLogo} 
+              alt="Zippty - Premium Pet Care" 
+              className="h-12 w-auto transition-transform duration-300 hover:scale-105 cursor-pointer"
+            />
           </div>
           
           <nav className="hidden md:flex items-center space-x-10">
