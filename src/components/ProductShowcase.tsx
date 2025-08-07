@@ -1,5 +1,7 @@
 import ProductCard from "./ProductCard";
+import ProductDetailModal from "./ProductDetailModal";
 import { GlassCard } from "@/components/ui/glass-card";
+import { useState } from "react";
 import robotToy from "@/assets/robot-toy-premium.jpg";
 import catToy from "@/assets/cat-toy-premium.jpg";
 import puzzleFeeder from "@/assets/puzzle-feeder-premium.jpg";
@@ -14,6 +16,15 @@ const products = [
     image: robotToy,
     category: "Interactive Robots",
     isNew: true,
+    description: "An advanced AI-powered robot companion that adapts to your pet's behavior and provides hours of interactive entertainment. Features motion sensors, LED lights, and autonomous movement patterns.",
+    features: [
+      "AI-powered adaptive play modes",
+      "Motion sensors and obstacle avoidance",
+      "LED light patterns for visual stimulation",
+      "Rechargeable battery (8+ hours)",
+      "Safe, durable materials",
+      "App connectivity for remote control"
+    ]
   },
   {
     name: "FelineBot Interactive Cat Toy",
@@ -22,6 +33,15 @@ const products = [
     reviews: 89,
     image: catToy,
     category: "Cat Toys",
+    description: "A high-tech interactive toy designed specifically for cats, featuring feathers, motion sensors, and unpredictable movement patterns to trigger your cat's hunting instincts.",
+    features: [
+      "Automatic motion detection",
+      "Replaceable feather attachments",
+      "Silent motor operation",
+      "Timer-based play sessions",
+      "Battery level indicator",
+      "Washable components"
+    ]
   },
   {
     name: "BrainBoost Puzzle Feeder",
@@ -31,10 +51,27 @@ const products = [
     reviews: 203,
     image: puzzleFeeder,
     category: "Smart Feeders",
+    description: "Transform mealtime into a mental workout with this innovative puzzle feeder. Multiple difficulty levels and adjustable compartments keep your pet engaged while eating.",
+    features: [
+      "Adjustable difficulty levels",
+      "Multiple feeding compartments",
+      "Non-slip base design",
+      "Easy to clean and fill",
+      "Slows down eating pace",
+      "Suitable for all pet sizes"
+    ]
   },
 ];
 
 const ProductShowcase = () => {
+  const [selectedProduct, setSelectedProduct] = useState<typeof products[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (product: typeof products[0]) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
   return (
     <section id="products" className="relative py-32 overflow-hidden">
       {/* Background Elements */}
@@ -70,7 +107,7 @@ const ProductShowcase = () => {
               className="animate-slide-up"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
-              <ProductCard {...product} />
+              <ProductCard {...product} onViewDetails={() => handleViewDetails(product)} />
             </div>
           ))}
         </div>
@@ -84,6 +121,12 @@ const ProductShowcase = () => {
           </GlassCard>
         </div>
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </section>
   );
 };

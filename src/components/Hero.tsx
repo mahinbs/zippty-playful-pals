@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ArrowRight, Play, Heart, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import FloatingElements from "./FloatingElements";
 import HeroCarousel from "./HeroCarousel";
+
 const Hero = () => {
+  const navigate = useNavigate();
+
   return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Gradient Mesh Background */}
       <div className="absolute inset-0 bg-gradient-mesh" />
@@ -49,7 +53,12 @@ const Hero = () => {
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
             
-            <Button variant="hero" size="lg" className="group text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all duration-300">
+            <Button 
+              onClick={() => navigate('/shop')}
+              variant="hero" 
+              size="lg" 
+              className="group text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all duration-300"
+            >
               Shop Now
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
