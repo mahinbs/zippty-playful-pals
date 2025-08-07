@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Shield, Clock, Tool, CheckCircle, AlertTriangle, FileText } from "lucide-react";
+import { Shield, Clock, Wrench, CheckCircle, AlertTriangle, FileText } from "lucide-react";
 
 const Warranty = () => {
   return (
