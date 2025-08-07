@@ -3,10 +3,8 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { ArrowRight, Play, Heart, Star } from "lucide-react";
 import FloatingElements from "./FloatingElements";
 import HeroCarousel from "./HeroCarousel";
-
 const Hero = () => {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+  return <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Gradient Mesh Background */}
       <div className="absolute inset-0 bg-gradient-mesh" />
       
@@ -17,7 +15,7 @@ const Hero = () => {
       <FloatingElements />
       
       {/* Enhanced Glass Overlay */}
-      <div className="absolute inset-0 bg-gradient-hero backdrop-blur-md" />
+      
       
       <div className="relative z-20 container mx-auto px-4 text-center text-white">
         <div className="max-w-6xl mx-auto space-y-12">
@@ -83,8 +81,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Hero;
