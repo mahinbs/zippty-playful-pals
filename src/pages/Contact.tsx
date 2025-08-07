@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-pets.jpg";
 
 const Contact = () => {
@@ -31,9 +32,11 @@ const Contact = () => {
             <p className="text-lg text-white/90">
               Have a question about our products? Need help with your order? We're ready to assist you.
             </p>
-            <Button variant="hero" size="lg">
-              Shop Now →
-            </Button>
+            <Link to="/shop">
+              <Button variant="hero" size="lg">
+                Shop Now →
+              </Button>
+            </Link>
             <div className="text-white/80">
               Collection of happy pet faces
             </div>
