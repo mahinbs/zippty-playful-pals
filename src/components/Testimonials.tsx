@@ -1,4 +1,6 @@
-import { Star } from "lucide-react";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Star, Quote } from "lucide-react";
+import testimonialImage from "@/assets/testimonial-priya.jpg";
 
 const testimonials = [
   {
@@ -11,44 +13,75 @@ const testimonials = [
 
 const Testimonials = () => {
   return (
-    <section className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl font-bold">
+    <section className="relative py-32 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-40" />
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-3xl" />
+      
+      <div className="relative container mx-auto px-4">
+        <div className="text-center mb-20 animate-fade-in">
+          <GlassCard intensity="light" className="inline-block px-6 py-3 mb-8">
+            <span className="text-sm font-medium text-primary">💝 Customer Love</span>
+          </GlassCard>
+          
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
             What our{" "}
             <span className="bg-gradient-primary bg-clip-text text-transparent">
               Customers Say
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground">
-            What people say about us
-          </p>
+          <p className="text-2xl text-muted-foreground">Real stories from happy pet families</p>
         </div>
         
-        <div className="max-w-4xl mx-auto">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-card rounded-3xl p-8 border border-border shadow-soft">
-              <div className="flex items-center gap-2 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-accent text-accent" />
+        <div className="max-w-5xl mx-auto animate-scale-in">
+          <GlassCard intensity="medium" className="relative p-12 overflow-hidden">
+            {/* Decorative Quote */}
+            <Quote className="absolute top-8 left-8 h-16 w-16 text-primary/20" />
+            
+            <div className="relative z-10">
+              {/* Rating Stars */}
+              <div className="flex justify-center items-center mb-8">
+                {[...Array(5)].map((_, i) => (
+                  <Star 
+                    key={i} 
+                    className="h-8 w-8 fill-yellow-400 text-yellow-400 mx-1 animate-pulse-slow" 
+                    style={{ animationDelay: `${i * 0.1}s` }}
+                  />
                 ))}
               </div>
               
-              <blockquote className="text-lg text-card-foreground mb-6 leading-relaxed">
-                "{testimonial.content}"
+              {/* Testimonial Text */}
+              <blockquote className="text-2xl md:text-3xl mb-12 text-foreground leading-relaxed text-center font-medium">
+                "The Interactive Cat Toy with 2-speed adjustment has been a{" "}
+                <span className="bg-gradient-primary bg-clip-text text-transparent font-bold">
+                  game-changer
+                </span>{" "}
+                for my energetic Bengal cat, Leo! The remote control works flawlessly, and Leo absolutely loves chasing the laser dot. It's kept him entertained for hours and helped reduce his destructive behavior."
               </blockquote>
               
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center text-white font-bold">
-                  {testimonial.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div>
-                  <div className="font-semibold text-card-foreground">{testimonial.name}</div>
-                  <div className="text-muted-foreground">{testimonial.role}</div>
+              {/* Customer Info */}
+              <div className="flex items-center justify-center">
+                <div className="flex items-center space-x-6">
+                  <div className="relative">
+                    <img
+                      src={testimonialImage}
+                      alt="Priya Sharma"
+                      className="w-20 h-20 rounded-full object-cover border-4 border-white/20 shadow-glow"
+                    />
+                    <div className="absolute -inset-2 bg-gradient-primary rounded-full opacity-20 blur-lg animate-pulse-slow" />
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">Priya Sharma</div>
+                    <div className="text-lg text-primary font-medium">Cat Parent & Bengal Enthusiast</div>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
+            
+            {/* Background Decoration */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-gradient-primary rounded-full opacity-10 blur-3xl animate-float" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-accent rounded-full opacity-10 blur-2xl animate-float" style={{ animationDelay: "2s" }} />
+          </GlassCard>
         </div>
       </div>
     </section>

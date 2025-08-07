@@ -1,39 +1,86 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import heroImage from "@/assets/hero-pets.jpg";
+import { GlassCard } from "@/components/ui/glass-card";
+import { ArrowRight, Play, Heart, Star } from "lucide-react";
+import heroImage from "@/assets/hero-pets-premium.jpg";
+import FloatingElements from "./FloatingElements";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-hero overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Gradient Mesh Background */}
+      <div className="absolute inset-0 bg-gradient-mesh" />
+      
+      {/* Hero Image with Parallax Effect */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 transform scale-110"
         style={{ backgroundImage: `url(${heroImage})` }}
       />
-      <div className="absolute inset-0 bg-gradient-hero opacity-80" />
       
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-            Joy for them{" "}
-            <span className="bg-gradient-accent bg-clip-text text-transparent">
-              love from you
-            </span>{" "}
-            only at Zippty
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto">
-            At Zippty, we know your pets are more than just animals—they're family. Whether you have a curious kitten or an energetic dog,
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="hero" size="lg" className="group">
+      {/* Floating Elements */}
+      <FloatingElements />
+      
+      {/* Glass Overlay */}
+      <div className="absolute inset-0 bg-gradient-hero backdrop-blur-sm" />
+      
+      <div className="relative z-20 container mx-auto px-4 text-center text-white">
+        <div className="max-w-6xl mx-auto space-y-12">
+          {/* Animated Main Heading */}
+          <div className="space-y-6 animate-fade-in">
+            <h1 className="text-6xl md:text-8xl font-bold leading-tight tracking-tight">
+              Joy for them{" "}
+              <span className="bg-gradient-accent bg-clip-text text-transparent animate-pulse-slow">
+                love from you
+              </span>{" "}
+              only at{" "}
+              <span className="relative">
+                Zippty
+                <div className="absolute -inset-2 bg-gradient-primary opacity-20 blur-lg rounded-full animate-pulse-slow" />
+              </span>
+            </h1>
+            
+            <p className="text-2xl md:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed animate-slide-up">
+              At Zippty, we know your pets are more than just animals—they're family. 
+              Experience the future of pet care with our revolutionary interactive toys.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-scale-in">
+            <Button size="lg" className="group bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white text-lg px-8 py-4 rounded-2xl shadow-glass transition-glass hover:shadow-float hover:scale-105">
+              <Play className="mr-3 h-6 w-6" />
+              Watch Demo
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
+            </Button>
+            
+            <Button variant="hero" size="lg" className="group text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all duration-300">
               Shop Now
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
           </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-slide-up">
+            <GlassCard intensity="medium" animated className="p-6 text-center">
+              <Heart className="h-8 w-8 text-red-400 mx-auto mb-3 animate-pulse" />
+              <div className="text-3xl font-bold mb-2">2k+</div>
+              <div className="text-white/80">Happy Pets</div>
+            </GlassCard>
+            
+            <GlassCard intensity="medium" animated className="p-6 text-center">
+              <Star className="h-8 w-8 text-yellow-400 mx-auto mb-3 animate-pulse" />
+              <div className="text-3xl font-bold mb-2">4.9</div>
+              <div className="text-white/80">Average Rating</div>
+            </GlassCard>
+            
+            <GlassCard intensity="medium" animated className="p-6 text-center">
+              <div className="text-2xl mb-3">🎮</div>
+              <div className="text-3xl font-bold mb-2">50+</div>
+              <div className="text-white/80">Smart Toys</div>
+            </GlassCard>
+          </div>
           
-          <div className="text-sm text-white/80">
-            Collection of happy pet faces
+          <div className="text-lg text-white/70 animate-bounce-slow">
+            ✨ Transform playtime into an extraordinary adventure ✨
           </div>
         </div>
       </div>

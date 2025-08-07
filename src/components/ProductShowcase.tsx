@@ -1,7 +1,8 @@
 import ProductCard from "./ProductCard";
-import robotToy from "@/assets/robot-toy-1.jpg";
-import catToy from "@/assets/cat-toy-1.jpg";
-import puzzleFeeder from "@/assets/puzzle-feeder.jpg";
+import { GlassCard } from "@/components/ui/glass-card";
+import robotToy from "@/assets/robot-toy-premium.jpg";
+import catToy from "@/assets/cat-toy-premium.jpg";
+import puzzleFeeder from "@/assets/puzzle-feeder-premium.jpg";
 
 const products = [
   {
@@ -35,31 +36,52 @@ const products = [
 
 const ProductShowcase = () => {
   return (
-    <section id="products" className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-4xl font-bold">
+    <section id="products" className="relative py-32 overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
+      <div className="absolute inset-0 bg-muted/50 backdrop-blur-3xl" />
+      
+      <div className="relative container mx-auto px-4">
+        <div className="text-center mb-20 space-y-8 animate-fade-in">
+          <div className="inline-block">
+            <GlassCard intensity="light" className="px-6 py-3 mb-6">
+              <span className="text-sm font-medium text-primary">✨ Premium Collection</span>
+            </GlassCard>
+          </div>
+          
+          <h2 className="text-5xl md:text-6xl font-bold leading-tight">
             Featured{" "}
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-primary bg-clip-text text-transparent relative">
               Smart Toys
+              <div className="absolute -inset-2 bg-gradient-primary opacity-20 blur-lg rounded-full animate-pulse-slow" />
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          
+          <p className="text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Discover our bestselling interactive toys that combine cutting-edge technology 
             with irresistible fun to keep your pets engaged and happy.
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-7xl mx-auto">
           {products.map((product, index) => (
-            <ProductCard key={index} {...product} />
+            <div 
+              key={index} 
+              className="animate-slide-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
+            >
+              <ProductCard {...product} />
+            </div>
           ))}
         </div>
         
-        <div className="text-center mt-12">
-          <button className="text-primary hover:text-primary/80 font-semibold text-lg underline underline-offset-4 transition-smooth">
-            View All Products →
-          </button>
+        <div className="text-center mt-16 animate-fade-in">
+          <GlassCard intensity="medium" animated className="inline-block p-6">
+            <button className="text-primary hover:text-primary/80 font-semibold text-xl transition-glass group">
+              View All Products
+              <span className="ml-2 group-hover:translate-x-2 transition-transform duration-300 inline-block">→</span>
+            </button>
+          </GlassCard>
         </div>
       </div>
     </section>
