@@ -17,6 +17,10 @@ const Header = () => {
           </div>
           
           <nav className="hidden md:flex items-center space-x-10">
+            <a href="/" className="text-foreground hover:text-primary transition-glass font-medium text-lg relative group">
+              Home
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary transition-all duration-300 group-hover:w-full"></span>
+            </a>
             <a href="/shop" className="text-foreground hover:text-primary transition-glass font-medium text-lg relative group">
               Products
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary transition-all duration-300 group-hover:w-full"></span>

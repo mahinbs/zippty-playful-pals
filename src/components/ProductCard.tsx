@@ -13,9 +13,12 @@ interface ProductCardProps {
   image: string;
   category: string;
   isNew?: boolean;
+  description?: string;
+  features?: string[];
+  onViewDetails?: () => void;
 }
 
-const ProductCard = ({ name, price, originalPrice, rating, reviews, image, category, isNew }: ProductCardProps) => {
+const ProductCard = ({ name, price, originalPrice, rating, reviews, image, category, isNew, onViewDetails }: ProductCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -102,10 +105,19 @@ const ProductCard = ({ name, price, originalPrice, rating, reviews, image, categ
             </div>
           </div>
           
-          <Button className="w-full group bg-gradient-primary hover:shadow-glow text-white border-0 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105">
-            <ShoppingCart className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
-            Add to Cart
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1 border-white/20 text-foreground hover:bg-white/10"
+              onClick={onViewDetails}
+            >
+              View Details
+            </Button>
+            <Button className="flex-1 group bg-gradient-primary hover:shadow-glow text-white border-0 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105">
+              <ShoppingCart className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+              Add to Cart
+            </Button>
+          </div>
         </div>
       </div>
     </GlassCard>
