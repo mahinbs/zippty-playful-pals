@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ShoppingCart, Menu } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import zipptyLogo from "@/assets/zippty-logo.png";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <header className="w-full backdrop-blur-3xl border-b border-slate-800/50 sticky top-0 z-50 bg-slate-900/80">
@@ -22,21 +25,49 @@ const Header = () => {
           </div>
           
           <nav className="hidden md:flex items-center space-x-10">
-            <Link to="/" className="text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group">
+            <Link 
+              to="/" 
+              className={`text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group ${
+                isActive('/') ? 'text-blue-400' : ''
+              }`}
+            >
               Home
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 ${
+                isActive('/') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
-            <Link to="/shop" className="text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group">
+            <Link 
+              to="/shop" 
+              className={`text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group ${
+                isActive('/shop') ? 'text-blue-400' : ''
+              }`}
+            >
               Products
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 ${
+                isActive('/shop') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
-            <Link to="/about" className="text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group">
+            <Link 
+              to="/about" 
+              className={`text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group ${
+                isActive('/about') ? 'text-blue-400' : ''
+              }`}
+            >
               About
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 ${
+                isActive('/about') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
-            <Link to="/contact" className="text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group">
+            <Link 
+              to="/contact" 
+              className={`text-slate-300 hover:text-blue-400 transition-all duration-300 font-medium text-lg relative group ${
+                isActive('/contact') ? 'text-blue-400' : ''
+              }`}
+            >
               Contact
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 group-hover:w-full"></span>
+              <span className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transition-all duration-300 ${
+                isActive('/contact') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}></span>
             </Link>
           </nav>
           
