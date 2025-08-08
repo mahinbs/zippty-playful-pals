@@ -1,4 +1,7 @@
 import { Product } from '@/contexts/CartContext';
+
+// Re-export Product type for easier imports
+export type { Product };
 import { supabase } from '@/integrations/supabase/client';
 import robotToyPremium from '@/assets/robot-toy-premium.jpg';
 import catToyPremium from '@/assets/cat-toy-premium.jpg';
