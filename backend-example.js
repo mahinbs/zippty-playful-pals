@@ -1,8 +1,9 @@
 // Backend API Example (Node.js/Express)
 // This is a reference implementation showing how the frontend connects to the backend
 
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -64,10 +65,20 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: 'Access token required' });
   }
 
-  // In production, verify JWT token
-  // For demo, we'll just check if token exists
-  req.userId = 'user123'; // Extract from token
-  next();
+  // In production, verify JWT token with Supabase
+  // For demo, we'll extract user info from token
+  try {
+    // Simple token validation - in production, verify with Supabase
+    if (token === 'test-token') {
+      req.userId = 'user123';
+    } else {
+      // Extract user ID from token (this would be the actual user ID from Supabase)
+      req.userId = token.split('.')[0] || 'user123';
+    }
+    next();
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid token' });
+  }
 };
 
 // Routes
@@ -78,19 +89,6 @@ app.get('/api/products', (req, res) => {
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching products', error: error.message });
-  }
-});
-
-// GET /api/products/:id - Get product by ID
-app.get('/api/products/:id', (req, res) => {
-  try {
-    const product = products.find(p => p.id === req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
-    }
-    res.json(product);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching product', error: error.message });
   }
 });
 
@@ -111,6 +109,19 @@ app.get('/api/products/search', (req, res) => {
     res.json(filteredProducts);
   } catch (error) {
     res.status(500).json({ message: 'Error searching products', error: error.message });
+  }
+});
+
+// GET /api/products/:id - Get product by ID
+app.get('/api/products/:id', (req, res) => {
+  try {
+    const product = products.find(p => p.id === req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    res.json(product);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching product', error: error.message });
   }
 });
 
@@ -220,4 +231,4 @@ app.listen(PORT, () => {
   console.log(`API available at http://localhost:${PORT}/api`);
 });
 
-module.exports = app; 
+export default app; 

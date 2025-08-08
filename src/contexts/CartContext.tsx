@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
+import { cartAPI } from '@/services/api';
 
 // Types
 export interface Product {
@@ -24,6 +26,7 @@ interface CartState {
   items: CartItem[];
   total: number;
   itemCount: number;
+  isSyncing: boolean;
 }
 
 type CartAction =
@@ -31,13 +34,15 @@ type CartAction =
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
   | { type: 'CLEAR_CART' }
-  | { type: 'LOAD_CART'; payload: CartItem[] };
+  | { type: 'LOAD_CART'; payload: CartItem[] }
+  | { type: 'SET_SYNCING'; payload: boolean };
 
 // Initial state
 const initialState: CartState = {
   items: [],
   total: 0,
   itemCount: 0,
+  isSyncing: false,
 };
 
 // Cart reducer
@@ -116,6 +121,13 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       };
     }
     
+    case 'SET_SYNCING': {
+      return {
+        ...state,
+        isSyncing: action.payload,
+      };
+    }
+    
     default:
       return state;
   }
@@ -130,6 +142,7 @@ interface CartContextType {
   clearCart: () => void;
   isInCart: (productId: string) => boolean;
   getItemQuantity: (productId: string) => number;
+  syncCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -141,24 +154,71 @@ interface CartProviderProps {
 
 function CartProvider({ children }: CartProviderProps) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const { user } = useAuth();
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage or backend on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('zippty-cart');
-    if (savedCart) {
-      try {
-        const cartItems = JSON.parse(savedCart);
-        dispatch({ type: 'LOAD_CART', payload: cartItems });
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
+    const loadCart = async () => {
+      if (user) {
+        // Load from backend for authenticated users
+        try {
+          const backendCart = await cartAPI.getUserCart();
+          if (backendCart.length > 0) {
+            // Convert backend format to frontend format
+            const cartItems = backendCart.map((item: any) => ({
+              product: item.product,
+              quantity: item.quantity,
+            }));
+            dispatch({ type: 'LOAD_CART', payload: cartItems });
+          }
+        } catch (error) {
+          console.error('Error loading cart from backend:', error);
+          // Fallback to localStorage
+          loadFromLocalStorage();
+        }
+      } else {
+        // Load from localStorage for guest users
+        loadFromLocalStorage();
       }
-    }
-  }, []);
+    };
 
-  // Save cart to localStorage whenever it changes
+    const loadFromLocalStorage = () => {
+      const savedCart = localStorage.getItem('zippty-cart');
+      if (savedCart) {
+        try {
+          const cartItems = JSON.parse(savedCart);
+          dispatch({ type: 'LOAD_CART', payload: cartItems });
+        } catch (error) {
+          console.error('Error loading cart from localStorage:', error);
+        }
+      }
+    };
+
+    loadCart();
+  }, [user]);
+
+  // Save cart to localStorage and sync with backend whenever it changes
   useEffect(() => {
     localStorage.setItem('zippty-cart', JSON.stringify(state.items));
-  }, [state.items]);
+    
+    // Sync with backend for authenticated users
+    if (user && state.items.length > 0) {
+      syncCartWithBackend();
+    }
+  }, [state.items, user]);
+
+  const syncCartWithBackend = async () => {
+    if (!user) return;
+    
+    dispatch({ type: 'SET_SYNCING', payload: true });
+    try {
+      await cartAPI.syncCart(state.items);
+    } catch (error) {
+      console.error('Error syncing cart with backend:', error);
+    } finally {
+      dispatch({ type: 'SET_SYNCING', payload: false });
+    }
+  };
 
   // Cart actions
   const addItem = (product: Product) => {
@@ -186,6 +246,12 @@ function CartProvider({ children }: CartProviderProps) {
     return item ? item.quantity : 0;
   };
 
+  const syncCart = async () => {
+    if (user) {
+      await syncCartWithBackend();
+    }
+  };
+
   const value: CartContextType = {
     state,
     addItem,
@@ -194,6 +260,7 @@ function CartProvider({ children }: CartProviderProps) {
     clearCart,
     isInCart,
     getItemQuantity,
+    syncCart,
   };
 
   return (

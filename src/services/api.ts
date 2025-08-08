@@ -1,4 +1,5 @@
 import { Product } from '@/contexts/CartContext';
+import { supabase } from '@/integrations/supabase/client';
 import robotToyPremium from '@/assets/robot-toy-premium.jpg';
 import catToyPremium from '@/assets/cat-toy-premium.jpg';
 import puzzleFeederPremium from '@/assets/puzzle-feeder-premium.jpg';
@@ -82,7 +83,10 @@ export const cartAPI = {
   // Sync cart with backend (for logged-in users)
   syncCart: async (cartItems: any[]): Promise<boolean> => {
     try {
-      const token = localStorage.getItem('auth-token');
+      // Get token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
       if (!token) {
         return false; // No token, skip sync
       }
@@ -105,7 +109,10 @@ export const cartAPI = {
   // Get user's cart from backend
   getUserCart: async (): Promise<any[]> => {
     try {
-      const token = localStorage.getItem('auth-token');
+      // Get token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
       if (!token) {
         return [];
       }

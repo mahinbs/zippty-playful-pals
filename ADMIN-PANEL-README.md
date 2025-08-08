@@ -10,7 +10,7 @@ A comprehensive admin panel for managing products on the Zippty Playful Pals web
 ## 🚀 **How to Access**
 
 1. **Via Navigation:** Click the "Admin" link in the website header
-2. **Direct URL:** Navigate to `http://localhost:8080/admin`
+2. **Direct URL:** Navigate to `http://localhost:3000/admin`
 
 ## 📋 **Features**
 
@@ -134,8 +134,8 @@ interface AdminProduct extends Product {
    ```
 
 2. **Access the website:**
-   - Main site: `http://localhost:8080`
-   - Admin panel: `http://localhost:8080/admin`
+   - Main site: `http://localhost:3000`
+- Admin panel: `http://localhost:3000/admin`
 
 3. **Login to admin panel:**
    - Username: `admin`
