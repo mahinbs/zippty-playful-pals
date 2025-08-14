@@ -1,7 +1,7 @@
 import { Facebook, Twitter, Instagram, Mail, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import zipptyLogo from "@/assets/zippty-logo.png";
+import zipptyLogo from "@/assets/new-zippty-logo.png";
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
