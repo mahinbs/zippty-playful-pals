@@ -679,7 +679,7 @@ const Admin = () => {
                                 <Button variant="outline" size="icon" onClick={() => openEditDialog(product)} title="Edit Product" className="text-zinc-50">
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="icon" onClick={() => openDeleteDialog(product)} title="Delete Product">
+                                <Button variant="outline" size="icon" onClick={() => openDeleteDialog(product)} title="Delete Product" className="text-zinc-50">
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
