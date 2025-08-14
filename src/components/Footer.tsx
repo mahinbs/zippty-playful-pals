@@ -1,7 +1,7 @@
 import { Facebook, Twitter, Instagram, Mail, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import zipptyLogo from "@/assets/zippty-logo-footer-new.png";
+import zipptyLogo from "@/assets/zippty-logo-updated.png";
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -26,7 +26,7 @@ const Footer = () => {
     }
   };
   return <footer className="bg-slate-900 border-t border-slate-800 text-slate-300">
-      <div className="container mx-auto px-4 py-16 bg-violet-900">
+      <div className="container mx-auto px-4 py-16 bg-indigo-950">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link to="/">
