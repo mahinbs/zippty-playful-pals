@@ -14,8 +14,8 @@ const features = [
   },
   {
     icon: Cpu,
-    title: "Connected Play",
-    description: "App-controlled features let you interact with your pet even when you're away."
+    title: "Interactive Features",
+    description: "Smart toys that engage your pet's natural instincts and behaviors."
   },
   {
     icon: Shield,
@@ -69,8 +69,8 @@ const About = () => {
             <div className="relative bg-card rounded-3xl p-8 border border-border shadow-soft">
               <div className="space-y-6">
                 <div className="text-center space-y-2">
-                  <h3 className="text-2xl font-bold">Why Choose Zippty?</h3>
-                  <p className="text-muted-foreground">The numbers speak for themselves</p>
+                  <h3 className="text-2xl font-bold">Quality & Innovation</h3>
+                  <p className="text-muted-foreground">Trusted by pet owners worldwide</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-6">

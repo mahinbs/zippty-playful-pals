@@ -116,7 +116,7 @@ const Shop = () => {
             Premium pet care products for your beloved companions
           </h2>
           <p className="text-lg text-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-3xl mx-auto">
-            Discover our collection of innovative pet toys, smart feeders, and interactive companions 
+            Discover our collection of innovative pet toys, interactive toys, and feeding solutions 
             designed to keep your pets happy, healthy, and entertained.
           </p>
         </div>
