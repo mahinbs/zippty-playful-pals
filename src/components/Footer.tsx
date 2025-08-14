@@ -1,7 +1,7 @@
 import { Facebook, Twitter, Instagram, Mail, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import zipptyLogo from "@/assets/zippty-logo-new.png";
+import zipptyLogo from "@/assets/zippty-logo-updated.png";
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -30,7 +30,7 @@ const Footer = () => {
         <div className="grid md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <Link to="/">
-              <img src={zipptyLogo} alt="Zippty - Premium Pet Care" className="h-10 w-auto transition-transform duration-300 hover:scale-105 backdrop-brightness-150 " />
+              <img src={zipptyLogo} alt="Zippty - Premium Pet Care" className="h-10 w-auto transition-transform duration-300 hover:scale-150 backdrop-brightness-150 " />
             </Link>
             <p className="text-slate-400 max-w-xs">
               The smarter way to shop for your pet. Cutting-edge technology meets irresistible fun.
