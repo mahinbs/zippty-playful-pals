@@ -127,13 +127,32 @@ export default {
 						transform: 'translateY(0px) translateX(0px) rotate(0deg) scale(1)' 
 					},
 					'25%': { 
-						transform: 'translateY(-30px) translateX(10px) rotate(90deg) scale(1.05)' 
+						transform: 'translateY(-40px) translateX(20px) rotate(45deg) scale(1.1)' 
 					},
 					'50%': { 
-						transform: 'translateY(-60px) translateX(-5px) rotate(180deg) scale(0.95)' 
+						transform: 'translateY(-80px) translateX(-15px) rotate(135deg) scale(0.9)' 
 					},
 					'75%': { 
-						transform: 'translateY(-30px) translateX(-10px) rotate(270deg) scale(1.02)' 
+						transform: 'translateY(-40px) translateX(-25px) rotate(225deg) scale(1.05)' 
+					},
+				},
+				'bubble-drift': {
+					'0%, 100%': { 
+						transform: 'translateY(0px) translateX(0px) scale(1)' 
+					},
+					'33%': { 
+						transform: 'translateY(-50px) translateX(30px) scale(1.15)' 
+					},
+					'66%': { 
+						transform: 'translateY(-25px) translateX(-20px) scale(0.85)' 
+					},
+				},
+				'bubble-glow': {
+					'0%, 100%': { 
+						filter: 'brightness(1) blur(0px)' 
+					},
+					'50%': { 
+						filter: 'brightness(1.3) blur(1px)' 
 					},
 				},
 			},
@@ -146,7 +165,9 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-slow': 'pulse 3s ease-in-out infinite',
 				'bounce-slow': 'bounce 2s ease-in-out infinite',
-				'bubble-float': 'bubble-float 30s ease-in-out infinite',
+				'bubble-float': 'bubble-float 25s ease-in-out infinite',
+				'bubble-drift': 'bubble-drift 35s ease-in-out infinite',
+				'bubble-glow': 'bubble-glow 4s ease-in-out infinite',
 			}
 		}
 	},
