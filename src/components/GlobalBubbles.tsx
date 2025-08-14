@@ -9,7 +9,7 @@ interface Bubble {
   duration: number;
   opacity: number;
   colorVariant: number;
-  animationType: 'float' | 'drift';
+  animationType: 'float' | 'drift' | 'float-fast' | 'drift-fast' | 'float-medium' | 'drift-medium';
   glowDelay: number;
 }
 
@@ -19,18 +19,21 @@ const GlobalBubbles = () => {
   useEffect(() => {
     const generateBubbles = () => {
       const newBubbles: Bubble[] = [];
-      for (let i = 0; i < 45; i++) {
+      for (let i = 0; i < 180; i++) {
+        const animationTypes = ['float', 'drift', 'float-fast', 'drift-fast', 'float-medium', 'drift-medium'];
+        const randomAnimation = animationTypes[Math.floor(Math.random() * animationTypes.length)];
+        
         newBubbles.push({
           id: i,
           x: Math.random() * 120 - 10, // -10% to 110% for partial off-screen
           y: Math.random() * 120 - 10,
-          size: Math.random() * 100 + 20, // 20px to 120px (varied sizes)
-          delay: Math.random() * 40, // 0-40s delay for better staggering
-          duration: Math.random() * 20 + 25, // 25-45 seconds for varied speeds
-          opacity: Math.random() * 0.4 + 0.3, // 30-70% opacity for 3D effect
+          size: Math.random() * 130 + 15, // 15px to 145px (varied sizes)
+          delay: Math.random() * 5, // 0-5s delay for quicker starts
+          duration: Math.random() * 6 + 2, // 2-8 seconds for fast speeds
+          opacity: Math.random() * 0.3 + 0.6, // 60-90% opacity for heavy visibility
           colorVariant: Math.floor(Math.random() * 6), // 6 vibrant color variants
-          animationType: Math.random() > 0.5 ? 'float' : 'drift',
-          glowDelay: Math.random() * 8, // 0-8s delay for glow animation
+          animationType: randomAnimation as any,
+          glowDelay: Math.random() * 2, // 0-2s delay for rapid glow
         });
       }
       setBubbles(newBubbles);
@@ -83,7 +86,7 @@ const GlobalBubbles = () => {
         return (
           <div
             key={bubble.id}
-            className={`absolute rounded-full animate-${bubble.animationType === 'float' ? 'bubble-float' : 'bubble-drift'} animate-bubble-glow`}
+            className={`absolute rounded-full animate-bubble-${bubble.animationType} animate-bubble-glow`}
             style={{
               left: `${bubble.x}%`,
               top: `${bubble.y}%`,
@@ -93,7 +96,7 @@ const GlobalBubbles = () => {
               background: bubbleStyle.background,
               boxShadow: bubbleStyle.shadow,
               animationDelay: `${bubble.delay}s, ${bubble.glowDelay}s`,
-              animationDuration: `${bubble.duration}s, 4s`,
+              animationDuration: `${bubble.duration}s, 1s`,
               willChange: "transform, filter",
               border: '1px solid rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(2px)',

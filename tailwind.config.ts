@@ -165,9 +165,13 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-slow': 'pulse 3s ease-in-out infinite',
 				'bounce-slow': 'bounce 2s ease-in-out infinite',
-				'bubble-float': 'bubble-float 25s ease-in-out infinite',
-				'bubble-drift': 'bubble-drift 35s ease-in-out infinite',
-				'bubble-glow': 'bubble-glow 4s ease-in-out infinite',
+				'bubble-float': 'bubble-float 3s ease-in-out infinite',
+				'bubble-drift': 'bubble-drift 4s ease-in-out infinite',
+				'bubble-glow': 'bubble-glow 1s ease-in-out infinite',
+				'bubble-float-fast': 'bubble-float 2s ease-in-out infinite',
+				'bubble-drift-fast': 'bubble-drift 2.5s ease-in-out infinite',
+				'bubble-float-medium': 'bubble-float 5s ease-in-out infinite',
+				'bubble-drift-medium': 'bubble-drift 6s ease-in-out infinite',
 			}
 		}
 	},
