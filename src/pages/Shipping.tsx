@@ -2,10 +2,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Truck, Package } from "lucide-react";
-
 const Shipping = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Header />
       
       {/* Hero Section */}
@@ -49,28 +47,9 @@ const Shipping = () => {
                   </ul>
                 </div>
                 
-                <div className="text-center p-6 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-lg border border-blue-500/30 relative">
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-3 py-1 rounded-full">Most Popular</span>
-                  </div>
-                  <div className="text-3xl mb-4">⚡</div>
-                  <p className="text-sm text-muted-foreground mb-4">2-3 business days</p>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Priority tracking</li>
-                    <li>• Insurance up to $500</li>
-                    <li>• Signature delivery</li>
-                  </ul>
-                </div>
                 
-                <div className="text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <div className="text-3xl mb-4">🚀</div>
-                  <p className="text-sm text-muted-foreground mb-4">Next business day</p>
-                  <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Premium tracking</li>
-                    <li>• Full insurance coverage</li>
-                    <li>• Guaranteed delivery</li>
-                  </ul>
-                </div>
+                
+                
               </div>
             </GlassCard>
 
@@ -143,8 +122,6 @@ const Shipping = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Shipping;
