@@ -80,7 +80,7 @@ const GlobalBubbles = () => {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[-1]">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[9999]">
       {bubbles.map((bubble) => {
         const bubbleStyle = getBubbleStyle(bubble);
         return (
