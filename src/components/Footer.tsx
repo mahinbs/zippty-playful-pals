@@ -57,9 +57,7 @@ const Footer = () => {
               <Link to="/shop" className="block text-slate-400 hover:text-blue-400 transition-all duration-300 hover:translate-x-1">
                 Interactive Robots
               </Link>
-              <Link to="/shop" className="block text-slate-400 hover:text-blue-400 transition-all duration-300 hover:translate-x-1">
-                Smart Feeders
-              </Link>
+              
               <Link to="/shop" className="block text-slate-400 hover:text-blue-400 transition-all duration-300 hover:translate-x-1">
                 Cat Toys
               </Link>
