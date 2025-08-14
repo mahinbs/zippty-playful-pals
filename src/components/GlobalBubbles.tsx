@@ -17,15 +17,15 @@ const GlobalBubbles = () => {
   useEffect(() => {
     const generateBubbles = () => {
       const newBubbles: Bubble[] = [];
-      for (let i = 0; i < 25; i++) {
+      for (let i = 0; i < 70; i++) {
         newBubbles.push({
           id: i,
           x: Math.random() * 120 - 10, // -10% to 110% for partial off-screen
           y: Math.random() * 120 - 10,
-          size: Math.random() * 280 + 20, // 20px to 300px
-          delay: Math.random() * 15,
-          duration: Math.random() * 20 + 10, // 10-30 seconds
-          opacity: Math.random() * 0.2 + 0.2, // 20-40% opacity
+          size: Math.random() * 17 + 8, // 8px to 25px (small bubbles)
+          delay: Math.random() * 30, // 0-30s delay for better staggering
+          duration: Math.random() * 30 + 15, // 15-45 seconds for varied speeds
+          opacity: Math.random() * 0.15 + 0.1, // 10-25% opacity (lower for many bubbles)
           colorVariant: Math.floor(Math.random() * 8), // 8 color variants
         });
       }
@@ -54,7 +54,7 @@ const GlobalBubbles = () => {
       {bubbles.map((bubble) => (
         <div
           key={bubble.id}
-          className={`absolute rounded-full ${getColorClass(bubble.colorVariant)} animate-bubble-float shadow-lg`}
+          className={`absolute rounded-full ${getColorClass(bubble.colorVariant)} animate-bubble-float`}
           style={{
             left: `${bubble.x}%`,
             top: `${bubble.y}%`,
