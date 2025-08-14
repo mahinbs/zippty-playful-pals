@@ -145,7 +145,7 @@ const Terms = () => {
                 <div>
                   <h3 className="text-xl font-semibold mb-3">Pricing & Taxes</h3>
                   <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>All prices are listed in USD unless otherwise specified</li>
+                    <li>All prices are listed in INR unless otherwise specified</li>
                     <li>Sales tax will be added where applicable</li>
                     <li>Prices are subject to change without notice</li>
                     <li>Shipping costs are calculated at checkout</li>

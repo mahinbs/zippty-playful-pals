@@ -139,8 +139,8 @@ const getMockProducts = (): Product[] => [
   {
     id: '1',
     name: 'SmartPlay Robot Companion',
-    price: 149.99,
-    originalPrice: 199.99,
+    price: 12499,
+    originalPrice: 16699,
     image: robotToyPremium,
     category: 'Interactive Robots',
     description: 'An advanced AI-powered robot companion that adapts to your pet\'s behavior and provides hours of interactive entertainment.',
@@ -159,7 +159,7 @@ const getMockProducts = (): Product[] => [
   {
     id: '2',
     name: 'FelineBot Interactive Cat Toy',
-    price: 89.99,
+    price: 7499,
     image: catToyPremium,
     category: 'Cat Toys',
     description: 'A high-tech interactive toy designed specifically for cats, featuring feathers, motion sensors, and unpredictable movement patterns.',
@@ -177,8 +177,8 @@ const getMockProducts = (): Product[] => [
   {
     id: '3',
     name: 'BrainBoost Puzzle Feeder',
-    price: 69.99,
-    originalPrice: 89.99,
+    price: 5849,
+    originalPrice: 7499,
     image: puzzleFeederPremium,
     category: 'Smart Feeders',
     description: 'Transform mealtime into a mental workout with this innovative puzzle feeder.',
@@ -196,7 +196,7 @@ const getMockProducts = (): Product[] => [
   {
     id: '4',
     name: 'AutoLaser Pro Pet Entertainment',
-    price: 75.99,
+    price: 6349,
     image: laserToyPremium,
     category: 'Cat Toys',
     description: 'Professional-grade automatic laser toy with multiple play patterns and safety features.',
@@ -214,7 +214,7 @@ const getMockProducts = (): Product[] => [
   {
     id: '5',
     name: 'Smart Treat Dispenser',
-    price: 95.99,
+    price: 7999,
     image: puzzleFeederPremium,
     category: 'Smart Feeders',
     description: 'WiFi-enabled treat dispenser with camera and two-way audio.',
@@ -232,8 +232,8 @@ const getMockProducts = (): Product[] => [
   {
     id: '6',
     name: 'Interactive Ball Launcher',
-    price: 129.99,
-    originalPrice: 159.99,
+    price: 10849,
+    originalPrice: 13349,
     image: robotToyPremium,
     category: 'Interactive Robots',
     description: 'Automatic ball launcher that keeps dogs entertained for hours.',
@@ -253,9 +253,9 @@ const getMockProducts = (): Product[] => [
 
 // Utility functions
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
   }).format(price);
 };
 

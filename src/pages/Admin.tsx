@@ -541,7 +541,7 @@ const Admin = () => {
 
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="price">Price ($)</Label>
+                        <Label htmlFor="price">Price (₹)</Label>
                         <Input
                           id="price"
                           type="number"
@@ -552,7 +552,7 @@ const Admin = () => {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="originalPrice">Original Price ($)</Label>
+                        <Label htmlFor="originalPrice">Original Price (₹)</Label>
                         <Input
                           id="originalPrice"
                           type="number"
@@ -932,7 +932,7 @@ const Admin = () => {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="edit-price">Price ($)</Label>
+                <Label htmlFor="edit-price">Price (₹)</Label>
                 <Input
                   id="edit-price"
                   type="number"
@@ -943,7 +943,7 @@ const Admin = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-originalPrice">Original Price ($)</Label>
+                <Label htmlFor="edit-originalPrice">Original Price (₹)</Label>
                 <Input
                   id="edit-originalPrice"
                   type="number"
