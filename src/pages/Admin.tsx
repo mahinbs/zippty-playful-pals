@@ -10,9 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage } from "lucide-react";
-import { Product } from "@/contexts/CartContext";
+import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage, Loader2 } from "lucide-react";
 import { formatPrice } from "@/services/api";
+import { productsService, AdminProduct, ProductStats, convertToDatabaseProduct } from "@/services/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -21,22 +21,36 @@ const ADMIN_CREDENTIALS = {
   username: "admin",
   password: "zippty2024"
 };
-interface AdminProduct extends Product {
-  stock?: number;
-  isActive?: boolean;
-}
+
 const Admin = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  
+  // Data states
   const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [stats, setStats] = useState<ProductStats>({
+    totalProducts: 0,
+    activeProducts: 0,
+    categories: 0,
+    newProducts: 0,
+  });
+  
+  // Loading states
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Dialog states
   const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<AdminProduct | null>(null);
+  
+  // Image handling states
   const [imageUploadMethod, setImageUploadMethod] = useState<"url" | "file">("url");
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isImageUploading, setIsImageUploading] = useState(false);
@@ -62,159 +76,175 @@ const Admin = () => {
     const authStatus = localStorage.getItem("admin-authenticated");
     if (authStatus === "true") {
       setIsAuthenticated(true);
-      loadProducts();
+      loadData();
     }
   }, []);
-  const loadProducts = () => {
-    // Load products from localStorage (in production, this would be from API)
-    const savedProducts = localStorage.getItem("admin-products");
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
-    } else {
-      // If no admin products exist, create some sample products
-      const sampleProducts: AdminProduct[] = [{
-        id: '1',
-        name: 'SmartPlay Robot Companion',
-        price: 149.99,
-        originalPrice: 199.99,
-        image: '/src/assets/robot-toy-premium.jpg',
-        category: 'Interactive Robots',
-        description: 'An advanced AI-powered robot companion that adapts to your pet\'s behavior and provides hours of interactive entertainment.',
-        features: ['AI-powered adaptive play modes', 'Motion sensors and obstacle avoidance', 'LED light patterns for visual stimulation', 'Rechargeable battery (8+ hours)', 'Safe, durable materials', 'App connectivity for remote control'],
-        rating: 5,
-        reviews: 127,
-        isNew: true,
-        stock: 25,
-        isActive: true
-      }, {
-        id: '2',
-        name: 'FelineBot Interactive Cat Toy',
-        price: 89.99,
-        image: '/src/assets/cat-toy-premium.jpg',
-        category: 'Cat Toys',
-        description: 'A high-tech interactive toy designed specifically for cats, featuring feathers, motion sensors, and unpredictable movement patterns.',
-        features: ['Automatic motion detection', 'Replaceable feather attachments', 'Silent motor operation', 'Timer-based play sessions', 'Battery level indicator', 'Washable components'],
-        rating: 5,
-        reviews: 89,
-        stock: 15,
-        isActive: true
-      }, {
-        id: '3',
-        name: 'BrainBoost Puzzle Feeder',
-        price: 69.99,
-        originalPrice: 89.99,
-        image: '/src/assets/puzzle-feeder-premium.jpg',
-        category: 'Smart Feeders',
-        description: 'Transform mealtime into a mental workout with this innovative puzzle feeder.',
-        features: ['Adjustable difficulty levels', 'Multiple feeding compartments', 'Non-slip base design', 'Easy to clean and fill', 'Slows down eating pace', 'Suitable for all pet sizes'],
-        rating: 4,
-        reviews: 203,
-        stock: 30,
-        isActive: true
-      }];
-      setProducts(sampleProducts);
-      localStorage.setItem("admin-products", JSON.stringify(sampleProducts));
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setIsLoadingStats(true);
+      
+      // Load products and stats in parallel
+      const [productsData, statsData] = await Promise.all([
+        productsService.getAllProducts(),
+        productsService.getProductStats()
+      ]);
+      
+      setProducts(productsData);
+      setStats(statsData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setIsLoadingStats(false);
     }
   };
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
       setIsAuthenticated(true);
       localStorage.setItem("admin-authenticated", "true");
-      loadProducts();
+      loadData();
     } else {
       setLoginError("Invalid username or password");
     }
   };
+
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem("admin-authenticated");
     navigate("/");
   };
-  const handleAddProduct = () => {
-    const newProduct: AdminProduct = {
-      id: Date.now().toString(),
-      name: formData.name,
-      price: parseFloat(formData.price),
-      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      image: formData.image || "/src/assets/robot-toy-premium.jpg",
-      // Default image
-      category: formData.category,
-      description: formData.description,
-      features: formData.features.filter(f => f.trim() !== ""),
-      rating: parseInt(formData.rating),
-      reviews: parseInt(formData.reviews),
-      isNew: formData.isNew,
-      stock: parseInt(formData.stock),
-      isActive: formData.isActive
-    };
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
 
-    // Reset form
-    setFormData({
-      name: "",
-      price: "",
-      originalPrice: "",
-      category: "",
-      description: "",
-      stock: "0",
-      isActive: true,
-      isNew: false,
-      rating: "5",
-      reviews: "0",
-      features: [""],
-      image: ""
-    });
-    setImagePreview("");
-    setImageUploadMethod("url");
-    setIsAddDialogOpen(false);
+  const handleAddProduct = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const productData = convertToDatabaseProduct({
+        name: formData.name,
+        price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        image: formData.image || "/src/assets/robot-toy-premium.jpg",
+        category: formData.category,
+        description: formData.description,
+        features: formData.features.filter(f => f.trim() !== ""),
+        rating: parseInt(formData.rating),
+        reviews: parseInt(formData.reviews),
+        isNew: formData.isNew,
+        stock: parseInt(formData.stock),
+        isActive: formData.isActive
+      });
+
+      const newProduct = await productsService.addProduct(productData);
+      setProducts(prev => [newProduct, ...prev]);
+      
+      // Refresh stats
+      const newStats = await productsService.getProductStats();
+      setStats(newStats);
+
+      // Reset form
+      setFormData({
+        name: "",
+        price: "",
+        originalPrice: "",
+        category: "",
+        description: "",
+        stock: "0",
+        isActive: true,
+        isNew: false,
+        rating: "5",
+        reviews: "0",
+        features: [""],
+        image: ""
+      });
+      setImagePreview("");
+      setImageUploadMethod("url");
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert('Failed to add product. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const handleEditProduct = () => {
+
+  const handleEditProduct = async () => {
     if (!editingProduct) return;
-    const updatedProduct: AdminProduct = {
-      ...editingProduct,
-      name: formData.name,
-      price: parseFloat(formData.price),
-      originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      category: formData.category,
-      description: formData.description,
-      features: formData.features.filter(f => f.trim() !== ""),
-      rating: parseInt(formData.rating),
-      reviews: parseInt(formData.reviews),
-      isNew: formData.isNew,
-      stock: parseInt(formData.stock),
-      isActive: formData.isActive
-    };
-    const updatedProducts = products.map(p => p.id === editingProduct.id ? updatedProduct : p);
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
-    setEditingProduct(null);
-    setImagePreview("");
-    setImageUploadMethod("url");
-    setIsEditDialogOpen(false);
+    
+    try {
+      setIsSubmitting(true);
+      
+      const updateData = convertToDatabaseProduct({
+        name: formData.name,
+        price: parseFloat(formData.price),
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        category: formData.category,
+        description: formData.description,
+        features: formData.features.filter(f => f.trim() !== ""),
+        rating: parseInt(formData.rating),
+        reviews: parseInt(formData.reviews),
+        isNew: formData.isNew,
+        stock: parseInt(formData.stock),
+        isActive: formData.isActive
+      });
+
+      const updatedProduct = await productsService.updateProduct(editingProduct.id, updateData);
+      setProducts(prev => prev.map(p => p.id === editingProduct.id ? updatedProduct : p));
+      
+      // Refresh stats
+      const newStats = await productsService.getProductStats();
+      setStats(newStats);
+      
+      setEditingProduct(null);
+      setImagePreview("");
+      setImageUploadMethod("url");
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Failed to update product. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  const handleDeleteProduct = () => {
+
+  const handleDeleteProduct = async () => {
     if (!productToDelete) return;
-    const updatedProducts = products.filter(p => p.id !== productToDelete.id);
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
-    setProductToDelete(null);
-    setIsDeleteDialogOpen(false);
+    
+    try {
+      setIsSubmitting(true);
+      
+      await productsService.deleteProduct(productToDelete.id);
+      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      
+      // Refresh stats
+      const newStats = await productsService.getProductStats();
+      setStats(newStats);
+      
+      setProductToDelete(null);
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   const openEditDialog = (product: AdminProduct) => {
     setEditingProduct(product);
     setFormData({
       name: product.name,
       price: product.price.toString(),
-      originalPrice: product.originalPrice?.toString() || "",
+      originalPrice: product.original_price?.toString() || "",
       category: product.category,
       description: product.description || "",
-      stock: product.stock?.toString() || "0",
-      isActive: product.isActive ?? true,
-      isNew: product.isNew || false,
+      stock: product.stock.toString(),
+      isActive: product.is_active,
+      isNew: product.is_new,
       rating: product.rating.toString(),
       reviews: product.reviews.toString(),
       features: product.features?.length ? product.features : [""],
@@ -223,22 +253,26 @@ const Admin = () => {
     setImagePreview(product.image || "");
     setIsEditDialogOpen(true);
   };
+
   const openDeleteDialog = (product: AdminProduct) => {
     setProductToDelete(product);
     setIsDeleteDialogOpen(true);
   };
+
   const addFeatureField = () => {
     setFormData(prev => ({
       ...prev,
       features: [...prev.features, ""]
     }));
   };
+
   const removeFeatureField = (index: number) => {
     setFormData(prev => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index)
     }));
   };
+
   const updateFeature = (index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -254,6 +288,7 @@ const Admin = () => {
     }));
     setImagePreview(url);
   };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -273,6 +308,7 @@ const Admin = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const clearImage = () => {
     setFormData(prev => ({
       ...prev,
@@ -283,7 +319,8 @@ const Admin = () => {
 
   // Login Form
   if (!isAuthenticated) {
-    return <div className="min-h-screen bg-background">
+    return (
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-md mx-auto">
@@ -298,11 +335,23 @@ const Admin = () => {
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
                     <Label htmlFor="username">Username</Label>
-                    <Input id="username" type="text" value={username} onChange={e => setUsername(e.target.value)} required />
+                    <Input 
+                      id="username" 
+                      type="text" 
+                      value={username} 
+                      onChange={e => setUsername(e.target.value)} 
+                      required 
+                    />
                   </div>
                   <div>
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <Input 
+                      id="password" 
+                      type="password" 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)} 
+                      required 
+                    />
                   </div>
                   {loginError && <div className="text-red-500 text-sm">{loginError}</div>}
                   <Button type="submit" className="w-full">
@@ -314,11 +363,13 @@ const Admin = () => {
           </div>
         </div>
         <Footer />
-      </div>;
+      </div>
+    );
   }
 
   // Admin Dashboard
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
@@ -345,7 +396,9 @@ const Admin = () => {
                 <Package className="h-8 w-8 text-blue-500" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-                  <p className="text-2xl font-bold">{products.length}</p>
+                  <p className="text-2xl font-bold">
+                    {isLoadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.totalProducts}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -357,7 +410,9 @@ const Admin = () => {
                 <BarChart3 className="h-8 w-8 text-green-500" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Active Products</p>
-                  <p className="text-2xl font-bold">{products.filter(p => p.isActive).length}</p>
+                  <p className="text-2xl font-bold">
+                    {isLoadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.activeProducts}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -369,7 +424,9 @@ const Admin = () => {
                 <Users className="h-8 w-8 text-purple-500" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Categories</p>
-                  <p className="text-2xl font-bold">{new Set(products.map(p => p.category)).size}</p>
+                  <p className="text-2xl font-bold">
+                    {isLoadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.categories}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -381,7 +438,9 @@ const Admin = () => {
                 <Settings className="h-8 w-8 text-orange-500" />
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">New Products</p>
-                  <p className="text-2xl font-bold">{products.filter(p => p.isNew).length}</p>
+                  <p className="text-2xl font-bold">
+                    {isLoadingStats ? <Loader2 className="h-6 w-6 animate-spin" /> : stats.newProducts}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -442,17 +501,25 @@ const Admin = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="name">Product Name</Label>
-                        <Input id="name" value={formData.name} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="name" 
+                          value={formData.name} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         name: e.target.value
-                      }))} placeholder="Enter product name" />
+                          }))} 
+                          placeholder="Enter product name" 
+                        />
                       </div>
                       <div>
                         <Label htmlFor="category">Category</Label>
-                        <Select value={formData.category} onValueChange={value => setFormData(prev => ({
+                        <Select 
+                          value={formData.category} 
+                          onValueChange={value => setFormData(prev => ({
                         ...prev,
                         category: value
-                      }))}>
+                          }))}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
@@ -469,114 +536,200 @@ const Admin = () => {
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="price">Price (₹)</Label>
-                        <Input id="price" type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="price" 
+                          type="number" 
+                          step="0.01" 
+                          value={formData.price} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         price: e.target.value
-                      }))} placeholder="0.00" />
+                          }))} 
+                          placeholder="0.00" 
+                        />
                       </div>
                       <div>
                         <Label htmlFor="originalPrice">Original Price (₹)</Label>
-                        <Input id="originalPrice" type="number" step="0.01" value={formData.originalPrice} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="originalPrice" 
+                          type="number" 
+                          step="0.01" 
+                          value={formData.originalPrice} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         originalPrice: e.target.value
-                      }))} placeholder="0.00" />
+                          }))} 
+                          placeholder="0.00" 
+                        />
                       </div>
                       <div>
                         <Label htmlFor="stock">Stock</Label>
-                        <Input id="stock" type="number" value={formData.stock} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="stock" 
+                          type="number" 
+                          value={formData.stock} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         stock: e.target.value
-                      }))} placeholder="0" />
+                          }))} 
+                          placeholder="0" 
+                        />
                       </div>
                     </div>
 
                     <div>
                       <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" value={formData.description} onChange={e => setFormData(prev => ({
+                      <Textarea 
+                        id="description" 
+                        value={formData.description} 
+                        onChange={e => setFormData(prev => ({
                       ...prev,
                       description: e.target.value
-                    }))} placeholder="Enter product description" rows={3} />
+                        }))} 
+                        placeholder="Enter product description" 
+                        rows={3} 
+                      />
                     </div>
 
                     {/* Image Upload Section */}
-                    <div className="space-y-4">
+                     <div className="space-y-4">
                       <Label>Product Image</Label>
-                      
-                      {/* Image Upload Method Toggle */}
-                      <div className="flex space-x-2">
-                        <Button type="button" variant={imageUploadMethod === "url" ? "default" : "outline"} size="sm" onClick={() => setImageUploadMethod("url")}>
-                          <Link className="h-4 w-4 mr-2" />
-                          Image URL
-                        </Button>
-                        <Button type="button" variant={imageUploadMethod === "file" ? "default" : "outline"} size="sm" onClick={() => setImageUploadMethod("file")}>
-                          <FileImage className="h-4 w-4 mr-2" />
-                          Upload File
-                        </Button>
-                      </div>
+                           
+                                                       {/* Image Upload Method Toggle */}
+                            <div className="flex space-x-2">
+                              <Button 
+                                type="button" 
+                          variant={imageUploadMethod === "url" ? "default" : "outline"} 
+                                size="sm" 
+                          onClick={() => setImageUploadMethod("url")}
+                              >
+                                <Link className="h-4 w-4 mr-2" />
+                                Image URL
+                              </Button>
+                              <Button 
+                                type="button" 
+                          variant={imageUploadMethod === "file" ? "default" : "outline"} 
+                                size="sm" 
+                          onClick={() => setImageUploadMethod("file")}
+                              >
+                                <FileImage className="h-4 w-4 mr-2" />
+                                Upload File
+                              </Button>
+                            </div>
 
-                      {/* Image URL Input */}
-                      {imageUploadMethod === "url" && <div className="space-y-2">
-                          <Input placeholder="Enter image URL (e.g., https://example.com/image.jpg)" value={formData.image} onChange={e => handleImageUrlChange(e.target.value)} />
+                            {/* Image URL Input */}
+                      {imageUploadMethod === "url" && (
+                        <div className="space-y-2">
+                              <Input 
+                                placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
+                            value={formData.image} 
+                            onChange={e => handleImageUrlChange(e.target.value)} 
+                              />
                           <p className="text-sm text-muted-foreground">
                             Enter a direct link to an image (JPG, PNG, WebP supported)
                           </p>
-                        </div>}
+                        </div>
+                            )}
 
-                      {/* File Upload */}
-                      {imageUploadMethod === "file" && <div className="space-y-2">
+                            {/* File Upload */}
+                      {imageUploadMethod === "file" && (
+                        <div className="space-y-2">
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                            <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="image-upload" />
+                                <input 
+                                  type="file" 
+                                  accept="image/*" 
+                              onChange={handleFileUpload} 
+                                  className="hidden" 
+                              id="image-upload" 
+                                />
                             <label htmlFor="image-upload" className="cursor-pointer">
                               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                              <p className="text-sm text-gray-600">
-                                {isImageUploading ? "Uploading..." : "Click to upload image"}
-                              </p>
+                                  <p className="text-sm text-gray-600">
+                                    {isImageUploading ? "Uploading..." : "Click to upload image"}
+                                  </p>
                               <p className="text-xs text-gray-500 mt-1">
                                 JPG, PNG, WebP up to 5MB
                               </p>
-                            </label>
+                                </label>
                           </div>
-                        </div>}
+                              </div>
+                            )}
 
-                      {/* Image Preview */}
-                      {(imagePreview || formData.image) && <div className="space-y-2">
-                          <Label>Image Preview</Label>
-                          <div className="relative inline-block">
-                            <img src={imagePreview || formData.image} alt="Product preview" className="w-32 h-32 object-cover rounded-lg border" onError={e => {
-                          e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
-                        }} />
-                            <Button type="button" variant="outline" size="icon" className="absolute -top-2 -right-2 h-6 w-6" onClick={clearImage}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>}
-                    </div>
+                           {/* Image Preview */}
+                      {(imagePreview || formData.image) && (
+                             <div className="space-y-2">
+                               <Label>Image Preview</Label>
+                               <div className="relative inline-block">
+                                 <img 
+                              src={imagePreview || formData.image} 
+                              alt="Product preview" 
+                              className="w-32 h-32 object-cover rounded-lg border" 
+                                   onError={e => {
+                                     e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
+                                   }} 
+                                 />
+                                 <Button 
+                                   type="button" 
+                                   variant="outline" 
+                                   size="icon" 
+                              className="absolute -top-2 -right-2 h-6 w-6" 
+                              onClick={clearImage}
+                                 >
+                                   <X className="h-3 w-3" />
+                                 </Button>
+                               </div>
+                             </div>
+                           )}
+                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="rating">Rating</Label>
-                        <Input id="rating" type="number" min="1" max="5" value={formData.rating} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="rating" 
+                          type="number" 
+                          min="1" 
+                          max="5" 
+                          value={formData.rating} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         rating: e.target.value
-                      }))} />
+                          }))} 
+                        />
                       </div>
                       <div>
                         <Label htmlFor="reviews">Reviews Count</Label>
-                        <Input id="reviews" type="number" value={formData.reviews} onChange={e => setFormData(prev => ({
+                        <Input 
+                          id="reviews" 
+                          type="number" 
+                          value={formData.reviews} 
+                          onChange={e => setFormData(prev => ({
                         ...prev,
                         reviews: e.target.value
-                      }))} />
+                          }))} 
+                        />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Features</Label>
-                      {formData.features.map((feature, index) => <div key={index} className="flex space-x-2">
-                          <Input value={feature} onChange={e => updateFeature(index, e.target.value)} placeholder={`Feature ${index + 1}`} />
-                          <Button type="button" variant="outline" size="icon" onClick={() => removeFeatureField(index)}>
+                      {formData.features.map((feature, index) => (
+                        <div key={index} className="flex space-x-2">
+                          <Input 
+                            value={feature} 
+                            onChange={e => updateFeature(index, e.target.value)} 
+                            placeholder={`Feature ${index + 1}`} 
+                          />
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="icon" 
+                            onClick={() => removeFeatureField(index)}
+                          >
                             <X className="h-4 w-4" />
                           </Button>
-                        </div>)}
+                        </div>
+                      ))}
                       <Button type="button" variant="outline" onClick={addFeatureField}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Feature
@@ -584,18 +737,26 @@ const Admin = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <Switch id="isActive" checked={formData.isActive} onCheckedChange={checked => setFormData(prev => ({
+                      <Switch 
+                        id="isActive" 
+                        checked={formData.isActive} 
+                        onCheckedChange={checked => setFormData(prev => ({
                       ...prev,
                       isActive: checked
-                    }))} />
+                        }))} 
+                      />
                       <Label htmlFor="isActive">Active Product</Label>
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <Switch id="isNew" checked={formData.isNew} onCheckedChange={checked => setFormData(prev => ({
+                      <Switch 
+                        id="isNew" 
+                        checked={formData.isNew} 
+                        onCheckedChange={checked => setFormData(prev => ({
                       ...prev,
                       isNew: checked
-                    }))} />
+                        }))} 
+                      />
                       <Label htmlFor="isNew">New Product</Label>
                     </div>
                   </div>
@@ -604,9 +765,18 @@ const Admin = () => {
                     <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleAddProduct}>
+                    <Button onClick={handleAddProduct} disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
                       <Save className="h-4 w-4 mr-2" />
                       Add Product
+                        </>
+                      )}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -622,13 +792,21 @@ const Admin = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
-                {products.length === 0 ? <div className="text-center py-12">
+                {isLoading ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading products...</p>
+                  </div>
+                ) : products.length === 0 ? (
+                  <div className="text-center py-12">
                     <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
                     <p className="text-muted-foreground mb-4">
                       Start by adding your first product using the "Add Product" button above.
                     </p>
-                  </div> : <div className="overflow-x-auto">
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
@@ -641,53 +819,76 @@ const Admin = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {products.map(product => <tr key={product.id} className="border-b hover:bg-muted/50">
+                        {products.map(product => (
+                          <tr key={product.id} className="border-b hover:bg-muted/50">
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
-                                <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded" />
-                                <div>
-                                  <p className="font-medium">{product.name}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {product.isNew && <Badge variant="secondary" className="mr-1">New</Badge>}
-                                    Rating: {product.rating}/5 ({product.reviews} reviews)
-                                  </p>
-                                </div>
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name} 
+                                  className="w-12 h-12 object-cover rounded" 
+                                />
+                                                                 <div>
+                                   <p className="font-medium">{product.name}</p>
+                                   <p className="text-sm text-muted-foreground">
+                                    {product.is_new && <Badge variant="secondary" className="mr-1">New</Badge>}
+                                     Rating: {product.rating}/5 ({product.reviews} reviews)
+                                   </p>
+                                 </div>
                               </div>
                             </td>
                             <td className="p-4">{product.category}</td>
                             <td className="p-4">
                               <div>
                                 <p className="font-medium">{formatPrice(product.price)}</p>
-                                {product.originalPrice && <p className="text-sm text-muted-foreground line-through">
-                                    {formatPrice(product.originalPrice)}
-                                  </p>}
+                                {product.original_price && (
+                                  <p className="text-sm text-muted-foreground line-through">
+                                    {formatPrice(product.original_price)}
+                                  </p>
+                                )}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
-                                <span className="font-medium">{product.stock || 0}</span>
-                                {product.stock && product.stock < 10 && <Badge variant="destructive" className="text-xs">Low Stock</Badge>}
+                                <span className="font-medium">{product.stock}</span>
+                                {product.stock < 10 && (
+                                  <Badge variant="destructive" className="text-xs">Low Stock</Badge>
+                                )}
                               </div>
                             </td>
                             <td className="p-4">
-                              <Badge variant={product.isActive ? "default" : "secondary"}>
-                                {product.isActive ? "Active" : "Inactive"}
+                              <Badge variant={product.is_active ? "default" : "secondary"}>
+                                {product.is_active ? "Active" : "Inactive"}
                               </Badge>
                             </td>
                             <td className="p-4">
                               <div className="flex items-center space-x-2">
-                                <Button variant="outline" size="icon" onClick={() => openEditDialog(product)} title="Edit Product" className="text-zinc-50">
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  onClick={() => openEditDialog(product)} 
+                                  title="Edit Product" 
+                                  className="text-zinc-500"
+                                >
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="outline" size="icon" onClick={() => openDeleteDialog(product)} title="Delete Product" className="text-zinc-50">
+                                <Button 
+                                  variant="outline" 
+                                  size="icon" 
+                                  onClick={() => openDeleteDialog(product)} 
+                                  title="Delete Product" 
+                                  className="text-zinc-500"
+                                >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </td>
-                          </tr>)}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
-                  </div>}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -740,17 +941,25 @@ const Admin = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-name">Product Name</Label>
-                <Input id="edit-name" value={formData.name} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-name" 
+                  value={formData.name} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 name: e.target.value
-              }))} placeholder="Enter product name" />
+                  }))} 
+                  placeholder="Enter product name" 
+                />
               </div>
               <div>
                 <Label htmlFor="edit-category">Category</Label>
-                <Select value={formData.category} onValueChange={value => setFormData(prev => ({
+                <Select 
+                  value={formData.category} 
+                  onValueChange={value => setFormData(prev => ({
                 ...prev,
                 category: value
-              }))}>
+                  }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -767,114 +976,200 @@ const Admin = () => {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="edit-price">Price (₹)</Label>
-                <Input id="edit-price" type="number" step="0.01" value={formData.price} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-price" 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.price} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 price: e.target.value
-              }))} placeholder="0.00" />
+                  }))} 
+                  placeholder="0.00" 
+                />
               </div>
               <div>
                 <Label htmlFor="edit-originalPrice">Original Price (₹)</Label>
-                <Input id="edit-originalPrice" type="number" step="0.01" value={formData.originalPrice} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-originalPrice" 
+                  type="number" 
+                  step="0.01" 
+                  value={formData.originalPrice} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 originalPrice: e.target.value
-              }))} placeholder="0.00" />
+                  }))} 
+                  placeholder="0.00" 
+                />
               </div>
               <div>
                 <Label htmlFor="edit-stock">Stock</Label>
-                <Input id="edit-stock" type="number" value={formData.stock} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-stock" 
+                  type="number" 
+                  value={formData.stock} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 stock: e.target.value
-              }))} placeholder="0" />
+                  }))} 
+                  placeholder="0" 
+                />
               </div>
             </div>
 
             <div>
               <Label htmlFor="edit-description">Description</Label>
-              <Textarea id="edit-description" value={formData.description} onChange={e => setFormData(prev => ({
+              <Textarea 
+                id="edit-description" 
+                value={formData.description} 
+                onChange={e => setFormData(prev => ({
               ...prev,
               description: e.target.value
-            }))} placeholder="Enter product description" rows={3} />
+                }))} 
+                placeholder="Enter product description" 
+                rows={3} 
+              />
             </div>
 
             {/* Image Upload Section */}
             <div className="space-y-4">
               <Label>Product Image</Label>
-              
-              {/* Image Upload Method Toggle */}
-              <div className="flex space-x-2">
-                <Button type="button" variant={imageUploadMethod === "url" ? "default" : "outline"} size="sm" onClick={() => setImageUploadMethod("url")}>
-                  <Link className="h-4 w-4 mr-2" />
-                  Image URL
-                </Button>
-                <Button type="button" variant={imageUploadMethod === "file" ? "default" : "outline"} size="sm" onClick={() => setImageUploadMethod("file")}>
-                  <FileImage className="h-4 w-4 mr-2" />
-                  Upload File
-                </Button>
-              </div>
+                  
+                                     {/* Image Upload Method Toggle */}
+                   <div className="flex space-x-2">
+                     <Button 
+                       type="button" 
+                  variant={imageUploadMethod === "url" ? "default" : "outline"} 
+                       size="sm" 
+                  onClick={() => setImageUploadMethod("url")}
+                     >
+                       <Link className="h-4 w-4 mr-2" />
+                       Image URL
+                     </Button>
+                     <Button 
+                       type="button" 
+                  variant={imageUploadMethod === "file" ? "default" : "outline"} 
+                       size="sm" 
+                  onClick={() => setImageUploadMethod("file")}
+                     >
+                       <FileImage className="h-4 w-4 mr-2" />
+                       Upload File
+                     </Button>
+                   </div>
 
-              {/* Image URL Input */}
-              {imageUploadMethod === "url" && <div className="space-y-2">
-                  <Input placeholder="Enter image URL (e.g., https://example.com/image.jpg)" value={formData.image} onChange={e => handleImageUrlChange(e.target.value)} />
+                   {/* Image URL Input */}
+              {imageUploadMethod === "url" && (
+                <div className="space-y-2">
+                     <Input 
+                       placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
+                    value={formData.image} 
+                    onChange={e => handleImageUrlChange(e.target.value)} 
+                     />
                   <p className="text-sm text-muted-foreground">
                     Enter a direct link to an image (JPG, PNG, WebP supported)
                   </p>
-                </div>}
+                </div>
+                   )}
 
-              {/* File Upload */}
-              {imageUploadMethod === "file" && <div className="space-y-2">
+                   {/* File Upload */}
+              {imageUploadMethod === "file" && (
+                <div className="space-y-2">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" id="edit-image-upload" />
+                       <input 
+                         type="file" 
+                         accept="image/*" 
+                      onChange={handleFileUpload} 
+                         className="hidden" 
+                      id="edit-image-upload" 
+                       />
                     <label htmlFor="edit-image-upload" className="cursor-pointer">
                       <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {isImageUploading ? "Uploading..." : "Click to upload image"}
-                      </p>
+                         <p className="text-sm text-gray-600">
+                           {isImageUploading ? "Uploading..." : "Click to upload image"}
+                         </p>
                       <p className="text-xs text-gray-500 mt-1">
                         JPG, PNG, WebP up to 5MB
                       </p>
-                    </label>
+                       </label>
                   </div>
-                </div>}
+                     </div>
+                   )}
 
-              {/* Image Preview */}
-              {(imagePreview || formData.image) && <div className="space-y-2">
-                  <Label>Image Preview</Label>
-                  <div className="relative inline-block">
-                    <img src={imagePreview || formData.image} alt="Product preview" className="w-32 h-32 object-cover rounded-lg border" onError={e => {
-                  e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
-                }} />
-                    <Button type="button" variant="outline" size="icon" className="absolute -top-2 -right-2 h-6 w-6" onClick={clearImage}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>}
+                  {/* Image Preview */}
+              {(imagePreview || formData.image) && (
+                    <div className="space-y-2">
+                      <Label>Image Preview</Label>
+                      <div className="relative inline-block">
+                        <img 
+                      src={imagePreview || formData.image} 
+                      alt="Product preview" 
+                      className="w-32 h-32 object-cover rounded-lg border" 
+                          onError={e => {
+                            e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
+                          }} 
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                      className="absolute -top-2 -right-2 h-6 w-6" 
+                      onClick={clearImage}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-rating">Rating</Label>
-                <Input id="edit-rating" type="number" min="1" max="5" value={formData.rating} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-rating" 
+                  type="number" 
+                  min="1" 
+                  max="5" 
+                  value={formData.rating} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 rating: e.target.value
-              }))} />
+                  }))} 
+                />
               </div>
               <div>
                 <Label htmlFor="edit-reviews">Reviews Count</Label>
-                <Input id="edit-reviews" type="number" value={formData.reviews} onChange={e => setFormData(prev => ({
+                <Input 
+                  id="edit-reviews" 
+                  type="number" 
+                  value={formData.reviews} 
+                  onChange={e => setFormData(prev => ({
                 ...prev,
                 reviews: e.target.value
-              }))} />
+                  }))} 
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Features</Label>
-              {formData.features.map((feature, index) => <div key={index} className="flex space-x-2">
-                  <Input value={feature} onChange={e => updateFeature(index, e.target.value)} placeholder={`Feature ${index + 1}`} />
-                  <Button type="button" variant="outline" size="icon" onClick={() => removeFeatureField(index)}>
+              {formData.features.map((feature, index) => (
+                <div key={index} className="flex space-x-2">
+                  <Input 
+                    value={feature} 
+                    onChange={e => updateFeature(index, e.target.value)} 
+                    placeholder={`Feature ${index + 1}`} 
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => removeFeatureField(index)}
+                  >
                     <X className="h-4 w-4" />
                   </Button>
-                </div>)}
+                </div>
+              ))}
               <Button type="button" variant="outline" onClick={addFeatureField}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Feature
@@ -882,18 +1177,26 @@ const Admin = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch id="edit-isActive" checked={formData.isActive} onCheckedChange={checked => setFormData(prev => ({
+              <Switch 
+                id="edit-isActive" 
+                checked={formData.isActive} 
+                onCheckedChange={checked => setFormData(prev => ({
               ...prev,
               isActive: checked
-            }))} />
+                }))} 
+              />
               <Label htmlFor="edit-isActive">Active Product</Label>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Switch id="edit-isNew" checked={formData.isNew} onCheckedChange={checked => setFormData(prev => ({
+              <Switch 
+                id="edit-isNew" 
+                checked={formData.isNew} 
+                onCheckedChange={checked => setFormData(prev => ({
               ...prev,
               isNew: checked
-            }))} />
+                }))} 
+              />
               <Label htmlFor="edit-isNew">New Product</Label>
             </div>
           </div>
@@ -902,9 +1205,18 @@ const Admin = () => {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditProduct}>
+            <Button onClick={handleEditProduct} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
               <Save className="h-4 w-4 mr-2" />
               Save Changes
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -923,15 +1235,26 @@ const Admin = () => {
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteProduct}>
+            <Button variant="destructive" onClick={handleDeleteProduct} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default Admin;
