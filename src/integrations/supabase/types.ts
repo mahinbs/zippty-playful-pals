@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -16,56 +16,57 @@ export type Database = {
     Tables: {
       products: {
         Row: {
-          id: string
-          name: string
-          price: number
-          original_price: number | null
-          image: string
           category: string
+          created_at: string
           description: string | null
-          features: string[] | null
+          features: string[]
+          id: string
+          image: string | null
+          is_active: boolean
+          is_new: boolean
+          name: string
+          original_price: number | null
+          price: number
           rating: number
           reviews: number
-          is_new: boolean
           stock: number
-          is_active: boolean
-          created_at: string
           updated_at: string
         }
         Insert: {
-          id?: string
-          name: string
-          price: number
-          original_price?: number | null
-          image: string
           category: string
+          created_at?: string
           description?: string | null
-          features?: string[] | null
+          features?: string[]
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          is_new?: boolean
+          name: string
+          original_price?: number | null
+          price: number
           rating?: number
           reviews?: number
-          is_new?: boolean
           stock?: number
-          is_active?: boolean
-          created_at?: string
           updated_at?: string
         }
         Update: {
-          id?: string
-          name?: string
-          price?: number
-          original_price?: number | null
-          image?: string
           category?: string
+          created_at?: string
           description?: string | null
-          features?: string[] | null
+          features?: string[]
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          is_new?: boolean
+          name?: string
+          original_price?: number | null
+          price?: number
           rating?: number
           reviews?: number
-          is_new?: boolean
           stock?: number
-          is_active?: boolean
-          created_at?: string
           updated_at?: string
         }
+        Relationships: []
       }
     }
     Views: {
