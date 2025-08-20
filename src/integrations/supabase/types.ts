@@ -21,7 +21,7 @@ export type Database = {
           description: string | null
           features: string[]
           id: string
-          image: string[] | null
+          image: string | null
           is_active: boolean
           is_new: boolean
           name: string
@@ -38,7 +38,7 @@ export type Database = {
           description?: string | null
           features?: string[]
           id?: string
-          image?: string[] | null
+          image?: string | null
           is_active?: boolean
           is_new?: boolean
           name: string
@@ -55,7 +55,7 @@ export type Database = {
           description?: string | null
           features?: string[]
           id?: string
-          image?: string[] | null
+          image?: string | null
           is_active?: boolean
           is_new?: boolean
           name?: string

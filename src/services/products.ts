@@ -180,41 +180,32 @@ export const productsService = {
 };
 
 // Helper function to convert database product to frontend product format
-export const convertToFrontendProduct = (dbProduct: Product): AdminProduct => {
-  return {
-    id: dbProduct.id,
-    name: dbProduct.name,
-    price: dbProduct.price,
-    original_price: dbProduct.original_price,
-    image: dbProduct.image || [],
-    category: dbProduct.category,
-    description: dbProduct.description,
-    features: dbProduct.features || [],
-    rating: dbProduct.rating,
-    reviews: dbProduct.reviews,
-    is_new: dbProduct.is_new,
-    stock: dbProduct.stock,
-    is_active: dbProduct.is_active,
-    created_at: dbProduct.created_at,
-    updated_at: dbProduct.updated_at
-  };
-};
+export const convertToFrontendProduct = (dbProduct: Product) => ({
+  id: dbProduct.id,
+  name: dbProduct.name,
+  price: dbProduct.price,
+  originalPrice: dbProduct.original_price,
+  image: dbProduct.image,
+  category: dbProduct.category,
+  description: dbProduct.description,
+  features: dbProduct.features,
+  rating: dbProduct.rating,
+  reviews: dbProduct.reviews,
+  isNew: dbProduct.is_new,
+});
 
 // Helper function to convert frontend product to database format
-export const convertToDatabaseProduct = (frontendProduct: any): Omit<ProductInsert, 'id' | 'created_at' | 'updated_at'> => {
-  return {
-    name: frontendProduct.name,
-    price: frontendProduct.price,
-    original_price: frontendProduct.originalPrice,
-    image: Array.isArray(frontendProduct.images) ? frontendProduct.images : 
-           (frontendProduct.images ? [frontendProduct.images] : []),
-    category: frontendProduct.category,
-    description: frontendProduct.description,
-    features: frontendProduct.features || [],
-    rating: frontendProduct.rating || 5,
-    reviews: frontendProduct.reviews || 0,
-    is_new: frontendProduct.isNew || false,
-    stock: frontendProduct.stock || 0,
-    is_active: frontendProduct.isActive !== undefined ? frontendProduct.isActive : true
-  };
-};
+export const convertToDatabaseProduct = (frontendProduct: any) => ({
+  name: frontendProduct.name,
+  price: frontendProduct.price,
+  original_price: frontendProduct.originalPrice,
+  image: frontendProduct.image,
+  category: frontendProduct.category,
+  description: frontendProduct.description,
+  features: frontendProduct.features,
+  rating: frontendProduct.rating,
+  reviews: frontendProduct.reviews,
+  is_new: frontendProduct.isNew,
+  stock: frontendProduct.stock,
+  is_active: frontendProduct.isActive,
+});

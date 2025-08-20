@@ -68,22 +68,15 @@ const Admin = () => {
     rating: "5",
     reviews: "0",
     features: [""],
-    images: [] as string[]
+    image: ""
   };
 
   // Form state for adding/editing products
   const [formData, setFormData] = useState(initialFormData);
-  
-  // Multiple image handling states
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
 
   // Reset form function
   const resetForm = () => {
     setFormData(initialFormData);
-    setImageFiles([]);
-    setImagePreviews([]);
     setImagePreview("");
     setImageUploadMethod("url");
     setEditingProduct(null);
@@ -146,7 +139,7 @@ const Admin = () => {
         name: formData.name,
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        images: formData.images.length > 0 ? formData.images : ["/src/assets/robot-toy-premium.jpg"],
+        image: formData.image || "/src/assets/robot-toy-premium.jpg",
         category: formData.category,
         description: formData.description,
         features: formData.features.filter(f => f.trim() !== ""),
@@ -249,9 +242,9 @@ const Admin = () => {
       rating: product.rating.toString(),
       reviews: product.reviews.toString(),
       features: product.features?.length ? product.features : [""],
-      images: product.image || []
+      image: product.image || ""
     });
-    setImagePreviews(product.image || []);
+    setImagePreview(product.image || "");
     setIsEditDialogOpen(true);
   };
 
@@ -285,56 +278,37 @@ const Admin = () => {
   const handleImageUrlChange = (url: string) => {
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, url].filter(Boolean)
+      image: url
     }));
-    setImagePreviews(prev => [...prev, url].filter(Boolean));
+    setImagePreview(url);
   };
 
-  const handleMultipleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsImageUploading(true);
 
-    try {
-      setIsUploading(true);
-      
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('images', file);
-      });
-
-      const response = await fetch('https://tdzyskyjqobglueymvmx.supabase.co/functions/v1/upload-images', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      
-      if (result.success && result.images) {
-        const newUrls = result.images.map((img: any) => img.url);
+      // Create a preview URL for the file
+      const reader = new FileReader();
+      reader.onload = e => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
         setFormData(prev => ({
           ...prev,
-          images: [...prev.images, ...newUrls]
+          image: result
         }));
-        setImagePreviews(prev => [...prev, ...newUrls]);
-      }
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      alert('Failed to upload images. Please try again.');
-    } finally {
-      setIsUploading(false);
+        setIsImageUploading(false);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = (index: number) => {
+  const clearImage = () => {
     setFormData(prev => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      image: ""
     }));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setImagePreview("");
   };
 
   // Login Form
@@ -643,11 +617,11 @@ const Admin = () => {
                             {/* Image URL Input */}
                       {imageUploadMethod === "url" && (
                         <div className="space-y-2">
-                            <Input 
-                              placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
-                          value="" 
-                          onChange={e => handleImageUrlChange(e.target.value)} 
-                            />
+                              <Input 
+                                placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
+                            value={formData.image} 
+                            onChange={e => handleImageUrlChange(e.target.value)} 
+                              />
                           <p className="text-sm text-muted-foreground">
                             Enter a direct link to an image (JPG, PNG, WebP supported)
                           </p>
@@ -661,7 +635,7 @@ const Admin = () => {
                                 <input 
                                   type="file" 
                                   accept="image/*" 
-                            onChange={handleMultipleFileUpload}
+                              onChange={handleFileUpload} 
                                   className="hidden" 
                               id="image-upload" 
                                 />
@@ -678,13 +652,13 @@ const Admin = () => {
                               </div>
                             )}
 
-                      {/* Image Preview */}
-                      {imagePreview && (
+                           {/* Image Preview */}
+                      {(imagePreview || formData.image) && (
                              <div className="space-y-2">
                                <Label>Image Preview</Label>
-                                <div className="relative inline-block">
-                                  <img 
-                              src={imagePreview} 
+                               <div className="relative inline-block">
+                                 <img 
+                              src={imagePreview || formData.image} 
                               alt="Product preview" 
                               className="w-32 h-32 object-cover rounded-lg border" 
                                    onError={e => {
@@ -696,7 +670,7 @@ const Admin = () => {
                                    variant="outline" 
                                    size="icon" 
                               className="absolute -top-2 -right-2 h-6 w-6" 
-                              onClick={() => setImagePreview("")}
+                              onClick={clearImage}
                                  >
                                    <X className="h-3 w-3" />
                                  </Button>
@@ -846,11 +820,11 @@ const Admin = () => {
                           <tr key={product.id} className="border-b hover:bg-muted/50">
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
-                                 <img 
-                                   src={product.image?.[0] || "/src/assets/robot-toy-premium.jpg"} 
-                                   alt={product.name} 
-                                   className="w-12 h-12 object-cover rounded" 
-                                 />
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name} 
+                                  className="w-12 h-12 object-cover rounded" 
+                                />
                                                                  <div>
                                    <p className="font-medium">{product.name}</p>
                                    <p className="text-sm text-muted-foreground">
@@ -1088,7 +1062,7 @@ const Admin = () => {
                 <div className="space-y-2">
                      <Input 
                        placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
-                    value="" 
+                    value={formData.image} 
                     onChange={e => handleImageUrlChange(e.target.value)} 
                      />
                   <p className="text-sm text-muted-foreground">
@@ -1104,7 +1078,7 @@ const Admin = () => {
                        <input 
                          type="file" 
                          accept="image/*" 
-                      onChange={handleMultipleFileUpload} 
+                      onChange={handleFileUpload} 
                          className="hidden" 
                       id="edit-image-upload" 
                        />
@@ -1121,32 +1095,28 @@ const Admin = () => {
                      </div>
                    )}
 
-              {/* Multiple Images Preview */}
-              {imagePreviews.length > 0 && (
+                  {/* Image Preview */}
+              {(imagePreview || formData.image) && (
                     <div className="space-y-2">
-                      <Label>Image Previews</Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {imagePreviews.map((preview, index) => (
-                          <div key={index} className="relative">
-                            <img 
-                              src={preview} 
-                              alt={`Product preview ${index + 1}`} 
-                              className="w-full h-24 object-cover rounded-lg border" 
-                              onError={e => {
-                                e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
-                              }} 
-                            />
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              size="icon" 
-                              className="absolute -top-2 -right-2 h-6 w-6" 
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
+                      <Label>Image Preview</Label>
+                      <div className="relative inline-block">
+                        <img 
+                      src={imagePreview || formData.image} 
+                      alt="Product preview" 
+                      className="w-32 h-32 object-cover rounded-lg border" 
+                          onError={e => {
+                            e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
+                          }} 
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="icon" 
+                      className="absolute -top-2 -right-2 h-6 w-6" 
+                      onClick={clearImage}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   )}
