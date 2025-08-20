@@ -211,19 +211,18 @@ const Cart = () => {
                 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-green-600 dark:text-green-400">Free</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span className="text-foreground">{formatPrice(state.total * 0.08)}</span>
+                  {state.total >= 4000 ? (
+                    <span className="text-green-600 dark:text-green-400">Free</span>
+                  ) : (
+                    <span className="text-foreground">{formatPrice(200)}</span>
+                  )}
                 </div>
                 
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold text-foreground">Total</span>
                     <span className="text-xl font-bold text-primary">
-                      {formatPrice(state.total * 1.08)}
+                      {formatPrice(state.total + (state.total >= 4000 ? 0 : 200))}
                     </span>
                   </div>
                 </div>
