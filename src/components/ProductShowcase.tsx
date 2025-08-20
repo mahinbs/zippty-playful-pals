@@ -2,10 +2,22 @@ import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
 import { GlassCard } from "@/components/ui/glass-card";
-import { productAPI, Product } from "@/services/api";
-import robotToyPremium from "@/assets/robot-toy-premium.jpg";
-import catToyPremium from "@/assets/cat-toy-premium.jpg";
-import puzzleFeederPremium from "@/assets/puzzle-feeder-premium.jpg";
+import { productsService, convertToFrontendProduct } from "@/services/products";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  category: string;
+  description?: string;
+  features?: string[];
+  rating: number;
+  reviews: number;
+  isNew?: boolean;
+}
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -19,80 +31,12 @@ const ProductShowcase = () => {
       try {
         setLoading(true);
         
-        // First, try to load admin products
-        const adminProducts = localStorage.getItem("admin-products");
-        if (adminProducts) {
-          const parsedProducts = JSON.parse(adminProducts);
-          // Filter only active products for display
-          const activeProducts = parsedProducts.filter((p: any) => p.isActive !== false);
-          if (activeProducts.length > 0) {
-            setProducts(activeProducts);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fallback to mock data if no admin products
-        const mockProducts = [
-          {
-            id: '1',
-            name: 'SmartPlay Robot Companion',
-            price: 149.99,
-            originalPrice: 199.99,
-            image: robotToyPremium,
-            category: 'Interactive Robots',
-            description: 'An advanced AI-powered robot companion that adapts to your pet\'s behavior and provides hours of interactive entertainment.',
-            features: [
-              'AI-powered adaptive play modes',
-              'Motion sensors and obstacle avoidance',
-              'LED light patterns for visual stimulation',
-              'Rechargeable battery (8+ hours)',
-              'Safe, durable materials',
-              'App connectivity for remote control'
-            ],
-            rating: 5,
-            reviews: 127,
-            isNew: true,
-          },
-          {
-            id: '2',
-            name: 'FelineBot Interactive Cat Toy',
-            price: 89.99,
-            image: catToyPremium,
-            category: 'Cat Toys',
-            description: 'A high-tech interactive toy designed specifically for cats, featuring feathers, motion sensors, and unpredictable movement patterns.',
-            features: [
-              'Automatic motion detection',
-              'Replaceable feather attachments',
-              'Silent motor operation',
-              'Timer-based play sessions',
-              'Battery level indicator',
-              'Washable components'
-            ],
-            rating: 5,
-            reviews: 89,
-          },
-          {
-            id: '3',
-            name: 'BrainBoost Puzzle Feeder',
-            price: 69.99,
-            originalPrice: 89.99,
-            image: puzzleFeederPremium,
-            category: 'Smart Feeders',
-            description: 'Transform mealtime into a mental workout with this innovative puzzle feeder.',
-            features: [
-              'Adjustable difficulty levels',
-              'Multiple feeding compartments',
-              'Non-slip base design',
-              'Easy to clean and fill',
-              'Slows down eating pace',
-              'Suitable for all pet sizes'
-            ],
-            rating: 4,
-            reviews: 203,
-          }
-        ];
-        setProducts(mockProducts);
+        // Fetch active products from database
+        const dbProducts = await productsService.getActiveProducts();
+        const formattedProducts = dbProducts.map(convertToFrontendProduct);
+        
+        // Show only first 3 products for featured section
+        setProducts(formattedProducts.slice(0, 3));
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {

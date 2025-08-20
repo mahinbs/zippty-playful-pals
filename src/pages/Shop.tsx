@@ -6,8 +6,23 @@ import ProductDetailModal from "@/components/ProductDetailModal";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Search, Filter, Grid, List } from "lucide-react";
-import { productAPI, Product } from "@/services/api";
+import { productsService, convertToFrontendProduct } from "@/services/products";
 import heroImage from "@/assets/hero-pets.jpg";
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  image: string;
+  images?: string[];
+  category: string;
+  description?: string;
+  features?: string[];
+  rating: number;
+  reviews: number;
+  isNew?: boolean;
+}
 
 const Shop = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,24 +40,12 @@ const Shop = () => {
       try {
         setLoading(true);
         
-        // First, try to load admin products
-        const adminProducts = localStorage.getItem("admin-products");
-        if (adminProducts) {
-          const parsedProducts = JSON.parse(adminProducts);
-          // Filter only active products for display
-          const activeProducts = parsedProducts.filter((p: any) => p.isActive !== false);
-          if (activeProducts.length > 0) {
-            setProducts(activeProducts);
-            setFilteredProducts(activeProducts);
-            setLoading(false);
-            return;
-          }
-        }
-
-        // Fallback to API call if no admin products
-        const fetchedProducts = await productAPI.getAllProducts();
-        setProducts(fetchedProducts);
-        setFilteredProducts(fetchedProducts);
+        // Fetch active products from database
+        const dbProducts = await productsService.getActiveProducts();
+        const formattedProducts = dbProducts.map(convertToFrontendProduct);
+        
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
