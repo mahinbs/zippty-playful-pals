@@ -155,7 +155,15 @@ interface CartProviderProps {
 
 function CartProvider({ children }: CartProviderProps) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  const { user } = useAuth();
+  
+  // Use optional chaining to handle auth context safely
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+  } catch (error) {
+    console.warn('Auth context not available, cart will work in guest mode');
+  }
 
   // Load cart from localStorage or backend on mount
   useEffect(() => {
