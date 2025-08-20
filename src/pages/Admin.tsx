@@ -55,8 +55,8 @@ const Admin = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isImageUploading, setIsImageUploading] = useState(false);
 
-  // Form state for adding/editing products
-  const [formData, setFormData] = useState({
+  // Initial form data
+  const initialFormData = {
     name: "",
     price: "",
     originalPrice: "",
@@ -69,7 +69,18 @@ const Admin = () => {
     reviews: "0",
     features: [""],
     image: ""
-  });
+  };
+
+  // Form state for adding/editing products
+  const [formData, setFormData] = useState(initialFormData);
+
+  // Reset form function
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setImagePreview("");
+    setImageUploadMethod("url");
+    setEditingProduct(null);
+  };
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -147,22 +158,7 @@ const Admin = () => {
       setStats(newStats);
 
       // Reset form
-      setFormData({
-        name: "",
-        price: "",
-        originalPrice: "",
-        category: "",
-        description: "",
-        stock: "0",
-        isActive: true,
-        isNew: false,
-        rating: "5",
-        reviews: "0",
-        features: [""],
-        image: ""
-      });
-      setImagePreview("");
-      setImageUploadMethod("url");
+      resetForm();
       setIsAddDialogOpen(false);
     } catch (error) {
       console.error('Error adding product:', error);
@@ -199,9 +195,7 @@ const Admin = () => {
       const newStats = await productsService.getProductStats();
       setStats(newStats);
       
-      setEditingProduct(null);
-      setImagePreview("");
-      setImageUploadMethod("url");
+      resetForm();
       setIsEditDialogOpen(false);
     } catch (error) {
       console.error('Error updating product:', error);
@@ -482,7 +476,10 @@ const Admin = () => {
             {/* Add Product Button */}
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Product Management</h2>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+                setIsAddDialogOpen(open);
+                if (!open) resetForm();
+              }}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
@@ -928,7 +925,10 @@ const Admin = () => {
       </div>
 
       {/* Edit Product Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) resetForm();
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
