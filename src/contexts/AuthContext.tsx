@@ -23,35 +23,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Clean up any stale Supabase auth state to avoid limbo sessions
-  const cleanupAuthState = () => {
-    try {
-      try { localStorage.removeItem('supabase.auth.token'); } catch {}
-      Object.keys(localStorage).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-          localStorage.removeItem(key);
-        }
-      });
-      Object.keys(sessionStorage || {}).forEach((key) => {
-        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-          sessionStorage.removeItem(key);
-        }
-      });
-    } catch {}
-  };
-
   useEffect(() => {
-    // Listen for auth changes FIRST to avoid missing events
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -61,52 +44,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Ensure clean auth state before signing in
-    cleanupAuthState();
-    try {
-      try {
-        await supabase.auth.signOut();
-      } catch {}
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      return { error };
-    } catch (e: any) {
-      return { error: e };
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    // Clean state and ensure no active sessions
-    cleanupAuthState();
-    try {
-      try {
-        await supabase.auth.signOut();
-      } catch {}
-      const redirectUrl = `${window.location.origin}/`;
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name,
-          },
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
         },
-      });
-      if (signUpError) return { error: signUpError };
-
-      // Immediately sign in (works when email confirmations are disabled)
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      return { error: signInError || null };
-    } catch (e: any) {
-      return { error: e };
-    }
+      },
+    });
+    return { error };
   };
 
   const signOut = async () => {
