@@ -17,17 +17,27 @@ interface CloudinaryResponse {
 // Removed compression function since OffscreenCanvas is not available in Deno edge functions
 // Images will be uploaded directly to Cloudinary with server-side transformations
 
-async function uploadToCloudinary(imageBlob: Blob): Promise<CloudinaryResponse> {
+async function uploadToCloudinary(imageFile: File): Promise<CloudinaryResponse> {
   const cloudName = Deno.env.get('CLOUDINARY_CLOUD_NAME');
   const apiKey = Deno.env.get('CLOUDINARY_API_KEY');
   const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET');
 
+  console.log('Checking Cloudinary credentials...');
+  console.log('Cloud name exists:', !!cloudName);
+  console.log('API key exists:', !!apiKey);
+  console.log('API secret exists:', !!apiSecret);
+
   if (!cloudName || !apiKey || !apiSecret) {
-    throw new Error('Cloudinary credentials not configured');
+    console.error('Missing Cloudinary credentials:', {
+      cloudName: !!cloudName,
+      apiKey: !!apiKey,
+      apiSecret: !!apiSecret
+    });
+    throw new Error(`Missing Cloudinary credentials: cloudName=${!!cloudName}, apiKey=${!!apiKey}, apiSecret=${!!apiSecret}`);
   }
 
   const formData = new FormData();
-  formData.append('file', imageBlob);
+  formData.append('file', imageFile);
   formData.append('api_key', apiKey);
   formData.append('upload_preset', 'ml_default'); // Use default preset
   
