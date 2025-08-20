@@ -14,48 +14,8 @@ interface CloudinaryResponse {
   bytes: number;
 }
 
-async function compressImage(imageFile: File, quality: number = 0.8): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const canvas = new OffscreenCanvas(1024, 1024);
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) {
-      reject(new Error('Could not get canvas context'));
-      return;
-    }
-
-    const img = new Image();
-    img.onload = () => {
-      // Calculate new dimensions while maintaining aspect ratio
-      let { width, height } = img;
-      const maxDimension = 1024;
-      
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      
-      // Draw and compress
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      canvas.convertToBlob({
-        type: 'image/jpeg',
-        quality: quality
-      }).then(resolve).catch(reject);
-    };
-    
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = URL.createObjectURL(imageFile);
-  });
-}
+// Removed compression function since OffscreenCanvas is not available in Deno edge functions
+// Images will be uploaded directly to Cloudinary with server-side transformations
 
 async function uploadToCloudinary(imageBlob: Blob): Promise<CloudinaryResponse> {
   const cloudName = Deno.env.get('CLOUDINARY_CLOUD_NAME');
@@ -117,14 +77,10 @@ serve(async (req) => {
 
     const uploadPromises = imageFiles.map(async (file) => {
       try {
-        console.log(`Compressing image: ${file.name} (${file.size} bytes)`);
+        console.log(`Uploading image: ${file.name} (${file.size} bytes)`);
         
-        // Compress the image
-        const compressedBlob = await compressImage(file, 0.8);
-        console.log(`Compressed to ${compressedBlob.size} bytes`);
-        
-        // Upload to Cloudinary
-        const result = await uploadToCloudinary(compressedBlob);
+        // Upload directly to Cloudinary (will handle compression server-side)
+        const result = await uploadToCloudinary(file);
         console.log(`Uploaded successfully: ${result.secure_url}`);
         
         return {
