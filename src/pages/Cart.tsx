@@ -252,7 +252,7 @@ const Cart = () => {
               <div className="mt-6 space-y-3">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Truck className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
-                  Free shipping on orders over $50
+                  Free shipping on orders over ₹4000
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Shield className="h-4 w-4 mr-2 text-primary" />
