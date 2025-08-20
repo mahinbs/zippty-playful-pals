@@ -56,6 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email,
       password,
       options: {
+        emailRedirectTo: 'https://zippty.in/',
         data: {
           name,
         },
