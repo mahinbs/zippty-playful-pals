@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,34 +24,10 @@ serve(async (req) => {
       );
     }
 
-    // Get Cloudinary credentials from environment
-    const cloudName = Deno.env.get('CLOUDINARY_CLOUD_NAME');
-    const apiKey = Deno.env.get('CLOUDINARY_API_KEY');
-    const apiSecret = Deno.env.get('CLOUDINARY_API_SECRET');
-
-    console.log('Environment check:', {
-      cloudName: cloudName ? 'present' : 'missing',
-      apiKey: apiKey ? 'present' : 'missing',
-      apiSecret: apiSecret ? 'present' : 'missing'
-    });
-
-    if (!cloudName || !apiKey || !apiSecret) {
-      console.error('Missing Cloudinary credentials');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Cloudinary credentials not configured',
-          details: {
-            cloudName: cloudName ? 'present' : 'missing',
-            apiKey: apiKey ? 'present' : 'missing',
-            apiSecret: apiSecret ? 'present' : 'missing'
-          }
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Parse form data
     const formData = await req.formData();
@@ -70,43 +47,40 @@ serve(async (req) => {
 
     console.log(`Processing ${files.length} files`);
 
-    // Upload files to Cloudinary
+    // Upload files to Supabase Storage
     const uploadPromises = files.map(async (file, index) => {
       try {
         console.log(`Uploading file ${index + 1}: ${file.name}, size: ${file.size}`);
         
-        // Convert file to buffer
-        const buffer = await file.arrayBuffer();
-        const base64Data = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        const dataUri = `data:${file.type};base64,${base64Data}`;
-
-        // Upload to Cloudinary
-        const uploadData = new FormData();
-        uploadData.append('file', dataUri);
-        uploadData.append('upload_preset', 'ml_default'); // You may need to create this in Cloudinary
-        uploadData.append('folder', 'zippty-products');
+        // Generate unique filename
+        const timestamp = Date.now();
+        const extension = file.name.split('.').pop();
+        const filename = `${timestamp}-${index}.${extension}`;
         
-        const uploadResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-          {
-            method: 'POST',
-            body: uploadData,
-          }
-        );
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(filename, file, {
+            contentType: file.type,
+            upsert: false
+          });
 
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text();
-          console.error(`Cloudinary upload failed for file ${index + 1}:`, errorText);
-          throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+        if (error) {
+          console.error(`Storage upload failed for file ${index + 1}:`, error);
+          throw new Error(`Upload failed: ${error.message}`);
         }
 
-        const result = await uploadResponse.json();
-        console.log(`Successfully uploaded file ${index + 1}:`, result.secure_url);
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filename);
+
+        console.log(`Successfully uploaded file ${index + 1}:`, publicUrl);
         
         return {
           success: true,
-          url: result.secure_url,
-          public_id: result.public_id,
+          url: publicUrl,
+          path: data.path,
           filename: file.name
         };
       } catch (error) {
