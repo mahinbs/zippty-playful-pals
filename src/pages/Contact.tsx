@@ -1,12 +1,10 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-pets.jpg";
+import Map from "@/components/Map";
 
 const Contact = () => {
   return (
@@ -30,7 +28,7 @@ const Contact = () => {
               If animals could talk, they'd talk about us!
             </h2>
             <p className="text-lg text-white/90">
-              Have a question about our products? Need help with your order? We're ready to assist you.
+              Visit our store or get in touch with us for any questions about our products.
             </p>
             <Link to="/shop">
               <Button variant="hero" size="lg">
@@ -44,58 +42,24 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Form and Info Section */}
+      {/* Contact Information and Map Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16">
-            {/* Contact Form */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-3xl font-bold">
-                  Feel free to{" "}
-                  <span className="bg-gradient-primary bg-clip-text text-transparent">
-                    contact us
-                  </span>
-                </h2>
-                <p className="text-muted-foreground">
-                  We'd love to hear from you! Whether you have a question about our products, need assistance with an order, or simply want to share your feedback, we're here to help.
-                </p>
-              </div>
-
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" placeholder="First name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" placeholder="Last name" />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input id="email" type="email" placeholder="E-mail address" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea 
-                    id="message" 
-                    placeholder="Your message..." 
-                    className="min-h-32"
-                  />
-                </div>
-                
-                <Button variant="hero" size="lg" className="w-full">
-                  Send Message
-                </Button>
-              </form>
+          <div className="max-w-4xl mx-auto space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold">
+                Get in{" "}
+                <span className="bg-gradient-primary bg-clip-text text-transparent">
+                  touch with us
+                </span>
+              </h2>
+              <p className="text-muted-foreground">
+                Visit our store or contact us for any questions about our products and services.
+              </p>
             </div>
 
-            {/* Contact Information */}
-            <div className="space-y-8">
+            <div className="grid lg:grid-cols-2 gap-12">
+              {/* Contact Information */}
               <div className="bg-card rounded-3xl p-8 border border-border shadow-soft space-y-6">
                 <h3 className="text-2xl font-bold">Contact Information</h3>
                 
@@ -144,15 +108,9 @@ const Contact = () => {
                 </div>
               </div>
 
-              {/* Map Placeholder */}
-              <div className="bg-muted rounded-3xl h-64 flex items-center justify-center border border-border">
-                <div className="text-center space-y-2">
-                  <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-                  <p className="text-muted-foreground">Interactive Map</p>
-                  <p className="text-sm text-muted-foreground">
-                    JP Colony, Shastri Nagar, Jaipur
-                  </p>
-                </div>
+              {/* Map */}
+              <div>
+                <Map />
               </div>
             </div>
           </div>
