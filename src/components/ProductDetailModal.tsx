@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle } from "lucide-react";
+import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useCart, Product } from "@/contexts/CartContext";
@@ -17,10 +17,22 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [quantity, setQuantity] = useState(1);
   const [isLiked, setIsLiked] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addItem, isInCart, getItemQuantity } = useCart();
+
+  const images = product?.images || (product?.image ? [product.image] : []);
+  const currentImage = images[currentImageIndex] || product?.image;
 
   const handleQuantityChange = (change: number) => {
     setQuantity(Math.max(1, quantity + change));
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const previousImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
   const handleAddToCart = async () => {
@@ -53,14 +65,42 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
         </DialogHeader>
         
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Product Image */}
+          {/* Product Image Gallery */}
           <div className="space-y-4">
             <div className="relative group">
               <img
-                src={product.image}
+                src={currentImage}
                 alt={product.name}
                 className="w-full h-96 object-cover rounded-xl"
               />
+              
+              {/* Navigation arrows - only show if multiple images */}
+              {images.length > 1 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white/90"
+                    onClick={previousImage}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white/90"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  
+                  {/* Image counter */}
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                    {currentImageIndex + 1} / {images.length}
+                  </div>
+                </>
+              )}
+              
               <button
                 onClick={() => setIsLiked(!isLiked)}
                 className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all"
@@ -88,6 +128,29 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                 </Badge>
               )}
             </div>
+            
+            {/* Thumbnail gallery - only show if multiple images */}
+            {images.length > 1 && (
+              <div className="flex space-x-2 overflow-x-auto">
+                {images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      index === currentImageIndex
+                        ? 'border-primary shadow-md'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${product.name} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Details */}

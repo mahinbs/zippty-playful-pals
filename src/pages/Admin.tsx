@@ -52,7 +52,7 @@ const Admin = () => {
   
   // Image handling states
   const [imageUploadMethod, setImageUploadMethod] = useState<"url" | "file">("url");
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isImageUploading, setIsImageUploading] = useState(false);
 
   // Initial form data
@@ -68,7 +68,7 @@ const Admin = () => {
     rating: "5",
     reviews: "0",
     features: [""],
-    image: ""
+    images: [""]
   };
 
   // Form state for adding/editing products
@@ -77,7 +77,7 @@ const Admin = () => {
   // Reset form function
   const resetForm = () => {
     setFormData(initialFormData);
-    setImagePreview("");
+    setImagePreviews([]);
     setImageUploadMethod("url");
     setEditingProduct(null);
   };
@@ -139,7 +139,7 @@ const Admin = () => {
         name: formData.name,
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-        image: formData.image || "/src/assets/robot-toy-premium.jpg",
+        image: formData.images.filter(img => img.trim() !== ""),
         category: formData.category,
         description: formData.description,
         features: formData.features.filter(f => f.trim() !== ""),
@@ -178,6 +178,7 @@ const Admin = () => {
         name: formData.name,
         price: parseFloat(formData.price),
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
+        image: formData.images.filter(img => img.trim() !== ""),
         category: formData.category,
         description: formData.description,
         features: formData.features.filter(f => f.trim() !== ""),
@@ -242,9 +243,9 @@ const Admin = () => {
       rating: product.rating.toString(),
       reviews: product.reviews.toString(),
       features: product.features?.length ? product.features : [""],
-      image: product.image || ""
+      images: Array.isArray(product.image) ? product.image : (product.image ? [product.image] : [""])
     });
-    setImagePreview(product.image || "");
+    setImagePreviews(Array.isArray(product.image) ? product.image : (product.image ? [product.image] : []));
     setIsEditDialogOpen(true);
   };
 
@@ -275,40 +276,90 @@ const Admin = () => {
   };
 
   // Image handling functions
-  const handleImageUrlChange = (url: string) => {
+  const addImageUrl = () => {
     setFormData(prev => ({
       ...prev,
-      image: url
+      images: [...prev.images, ""]
     }));
-    setImagePreview(url);
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setIsImageUploading(true);
-
-      // Create a preview URL for the file
-      const reader = new FileReader();
-      reader.onload = e => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setFormData(prev => ({
-          ...prev,
-          image: result
-        }));
-        setIsImageUploading(false);
-      };
-      reader.readAsDataURL(file);
+  const updateImageUrl = (index: number, url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.map((img, i) => i === index ? url : img)
+    }));
+    
+    // Update previews for valid URLs
+    if (url && url.startsWith('http')) {
+      setImagePreviews(prev => {
+        const updated = [...prev];
+        updated[index] = url;
+        return updated;
+      });
     }
   };
 
-  const clearImage = () => {
+  const removeImage = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      image: ""
+      images: prev.images.filter((_, i) => i !== index)
     }));
-    setImagePreview("");
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleMultipleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsImageUploading(true);
+    
+    try {
+      // Create FormData for multiple files
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append('files', file);
+      });
+
+      // Upload to Supabase Edge Function
+      const response = await fetch('https://tdzyskyjqobglueymvmx.supabase.co/functions/v1/upload-images', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenlza3lqcW9iZ2x1ZXltdm14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjM4MzYsImV4cCI6MjA3MDEzOTgzNn0.5fQXZ2dJF30gPq_VtKmg4L-_fV5pOp5Pd56PU5mHcUM'}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.uploaded.length > 0) {
+        // Add successful uploads to images
+        const newImageUrls = result.uploaded.map((upload: any) => upload.url);
+        
+        setFormData(prev => ({
+          ...prev,
+          images: [...prev.images.filter(img => img.trim() !== ""), ...newImageUrls]
+        }));
+        
+        setImagePreviews(prev => [...prev, ...newImageUrls]);
+        
+        if (result.failed.length > 0) {
+          alert(`${result.uploaded.length} images uploaded successfully. ${result.failed.length} failed.`);
+        }
+      } else {
+        throw new Error('No images were uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload images. Please try again.');
+    } finally {
+      setIsImageUploading(false);
+      // Reset file input
+      event.target.value = '';
+    }
   };
 
   // Login Form
@@ -614,66 +665,96 @@ const Admin = () => {
                               </Button>
                             </div>
 
-                            {/* Image URL Input */}
-                      {imageUploadMethod === "url" && (
-                        <div className="space-y-2">
-                              <Input 
-                                placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
-                            value={formData.image} 
-                            onChange={e => handleImageUrlChange(e.target.value)} 
-                              />
-                          <p className="text-sm text-muted-foreground">
-                            Enter a direct link to an image (JPG, PNG, WebP supported)
-                          </p>
-                        </div>
-                            )}
+                     {/* Multiple Image URLs Section */}
+                     <div className="space-y-4">
+                       <div className="flex items-center justify-between">
+                         <Label>Product Images</Label>
+                         <Button type="button" variant="outline" size="sm" onClick={addImageUrl}>
+                           <Plus className="h-4 w-4 mr-2" />
+                           Add Image URL
+                         </Button>
+                       </div>
+                       
+                       {formData.images.map((imageUrl, index) => (
+                         <div key={index} className="flex space-x-2 items-start">
+                           <div className="flex-1">
+                             <Input 
+                               placeholder={`Image URL ${index + 1} (e.g., https://example.com/image.jpg)`} 
+                               value={imageUrl} 
+                               onChange={e => updateImageUrl(index, e.target.value)} 
+                             />
+                           </div>
+                           <Button 
+                             type="button" 
+                             variant="outline" 
+                             size="icon" 
+                             onClick={() => removeImage(index)}
+                             disabled={formData.images.length === 1}
+                           >
+                             <X className="h-4 w-4" />
+                           </Button>
+                         </div>
+                       ))}
+                       
+                       <p className="text-sm text-muted-foreground">
+                         Enter direct links to images (JPG, PNG, WebP supported). First image will be the main product image.
+                       </p>
+                     </div>
 
-                            {/* File Upload */}
+                             {/* Multiple File Upload */}
                       {imageUploadMethod === "file" && (
                         <div className="space-y-2">
                           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                                 <input 
                                   type="file" 
                                   accept="image/*" 
-                              onChange={handleFileUpload} 
+                                  multiple
+                              onChange={handleMultipleFileUpload} 
                                   className="hidden" 
                               id="image-upload" 
                                 />
                             <label htmlFor="image-upload" className="cursor-pointer">
                               <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                                   <p className="text-sm text-gray-600">
-                                    {isImageUploading ? "Uploading..." : "Click to upload image"}
+                                    {isImageUploading ? "Uploading..." : "Click to upload multiple images"}
                                   </p>
                               <p className="text-xs text-gray-500 mt-1">
-                                JPG, PNG, WebP up to 5MB
+                                JPG, PNG, WebP up to 5MB each. Select multiple files.
                               </p>
                                 </label>
                           </div>
                               </div>
                             )}
 
-                           {/* Image Preview */}
-                      {(imagePreview || formData.image) && (
+                           {/* Image Previews */}
+                      {imagePreviews.length > 0 && (
                              <div className="space-y-2">
-                               <Label>Image Preview</Label>
-                               <div className="relative inline-block">
-                                 <img 
-                              src={imagePreview || formData.image} 
-                              alt="Product preview" 
-                              className="w-32 h-32 object-cover rounded-lg border" 
-                                   onError={e => {
-                                     e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
-                                   }} 
-                                 />
-                                 <Button 
-                                   type="button" 
-                                   variant="outline" 
-                                   size="icon" 
-                              className="absolute -top-2 -right-2 h-6 w-6" 
-                              onClick={clearImage}
-                                 >
-                                   <X className="h-3 w-3" />
-                                 </Button>
+                               <Label>Image Previews</Label>
+                               <div className="grid grid-cols-3 gap-4">
+                                 {imagePreviews.map((preview, index) => (
+                                   <div key={index} className="relative">
+                                     <img 
+                                       src={preview} 
+                                       alt={`Product preview ${index + 1}`} 
+                                       className="w-full h-32 object-cover rounded-lg border" 
+                                       onError={e => {
+                                         e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
+                                       }} 
+                                     />
+                                     {index === 0 && (
+                                       <Badge className="absolute top-1 left-1 text-xs">Main</Badge>
+                                     )}
+                                     <Button 
+                                       type="button" 
+                                       variant="outline" 
+                                       size="icon" 
+                                       className="absolute -top-2 -right-2 h-6 w-6" 
+                                       onClick={() => removeImage(index)}
+                                     >
+                                       <X className="h-3 w-3" />
+                                     </Button>
+                                   </div>
+                                 ))}
                                </div>
                              </div>
                            )}
@@ -821,7 +902,7 @@ const Admin = () => {
                             <td className="p-4">
                               <div className="flex items-center space-x-3">
                                 <img 
-                                  src={product.image} 
+                                  src={Array.isArray(product.image) ? product.image[0] : product.image} 
                                   alt={product.name} 
                                   className="w-12 h-12 object-cover rounded" 
                                 />
@@ -1057,66 +1138,96 @@ const Admin = () => {
                      </Button>
                    </div>
 
-                   {/* Image URL Input */}
-              {imageUploadMethod === "url" && (
-                <div className="space-y-2">
-                     <Input 
-                       placeholder="Enter image URL (e.g., https://example.com/image.jpg)" 
-                    value={formData.image} 
-                    onChange={e => handleImageUrlChange(e.target.value)} 
-                     />
-                  <p className="text-sm text-muted-foreground">
-                    Enter a direct link to an image (JPG, PNG, WebP supported)
-                  </p>
-                </div>
-                   )}
+                   {/* Multiple Image URLs Section */}
+                   <div className="space-y-4">
+                     <div className="flex items-center justify-between">
+                       <Label>Product Images</Label>
+                       <Button type="button" variant="outline" size="sm" onClick={addImageUrl}>
+                         <Plus className="h-4 w-4 mr-2" />
+                         Add Image URL
+                       </Button>
+                     </div>
+                     
+                     {formData.images.map((imageUrl, index) => (
+                       <div key={index} className="flex space-x-2 items-start">
+                         <div className="flex-1">
+                           <Input 
+                             placeholder={`Image URL ${index + 1} (e.g., https://example.com/image.jpg)`} 
+                             value={imageUrl} 
+                             onChange={e => updateImageUrl(index, e.target.value)} 
+                           />
+                         </div>
+                         <Button 
+                           type="button" 
+                           variant="outline" 
+                           size="icon" 
+                           onClick={() => removeImage(index)}
+                           disabled={formData.images.length === 1}
+                         >
+                           <X className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     ))}
+                     
+                     <p className="text-sm text-muted-foreground">
+                       Enter direct links to images (JPG, PNG, WebP supported). First image will be the main product image.
+                     </p>
+                   </div>
 
-                   {/* File Upload */}
+                   {/* Multiple File Upload */}
               {imageUploadMethod === "file" && (
                 <div className="space-y-2">
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                        <input 
                          type="file" 
                          accept="image/*" 
-                      onChange={handleFileUpload} 
+                         multiple
+                      onChange={handleMultipleFileUpload} 
                          className="hidden" 
                       id="edit-image-upload" 
                        />
                     <label htmlFor="edit-image-upload" className="cursor-pointer">
                       <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                          <p className="text-sm text-gray-600">
-                           {isImageUploading ? "Uploading..." : "Click to upload image"}
+                           {isImageUploading ? "Uploading..." : "Click to upload multiple images"}
                          </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        JPG, PNG, WebP up to 5MB
+                        JPG, PNG, WebP up to 5MB each. Select multiple files.
                       </p>
                        </label>
                   </div>
                      </div>
                    )}
 
-                  {/* Image Preview */}
-              {(imagePreview || formData.image) && (
+                  {/* Image Previews */}
+              {imagePreviews.length > 0 && (
                     <div className="space-y-2">
-                      <Label>Image Preview</Label>
-                      <div className="relative inline-block">
-                        <img 
-                      src={imagePreview || formData.image} 
-                      alt="Product preview" 
-                      className="w-32 h-32 object-cover rounded-lg border" 
-                          onError={e => {
-                            e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
-                          }} 
-                        />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="icon" 
-                      className="absolute -top-2 -right-2 h-6 w-6" 
-                      onClick={clearImage}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+                      <Label>Image Previews</Label>
+                      <div className="grid grid-cols-3 gap-4">
+                        {imagePreviews.map((preview, index) => (
+                          <div key={index} className="relative">
+                            <img 
+                              src={preview} 
+                              alt={`Product preview ${index + 1}`} 
+                              className="w-full h-32 object-cover rounded-lg border" 
+                              onError={e => {
+                                e.currentTarget.src = "/src/assets/robot-toy-premium.jpg";
+                              }} 
+                            />
+                            {index === 0 && (
+                              <Badge className="absolute top-1 left-1 text-xs">Main</Badge>
+                            )}
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="icon" 
+                              className="absolute -top-2 -right-2 h-6 w-6" 
+                              onClick={() => removeImage(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}

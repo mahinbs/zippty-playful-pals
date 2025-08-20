@@ -185,7 +185,10 @@ export const convertToFrontendProduct = (dbProduct: Product) => ({
   name: dbProduct.name,
   price: dbProduct.price,
   originalPrice: dbProduct.original_price,
-  image: dbProduct.image,
+  image: Array.isArray(dbProduct.image) && dbProduct.image.length > 0 
+    ? dbProduct.image[0] 
+    : (typeof dbProduct.image === 'string' ? dbProduct.image : '/src/assets/robot-toy-premium.jpg'),
+  images: Array.isArray(dbProduct.image) ? dbProduct.image : (dbProduct.image ? [dbProduct.image] : []),
   category: dbProduct.category,
   description: dbProduct.description,
   features: dbProduct.features,
@@ -199,7 +202,9 @@ export const convertToDatabaseProduct = (frontendProduct: any) => ({
   name: frontendProduct.name,
   price: frontendProduct.price,
   original_price: frontendProduct.originalPrice,
-  image: frontendProduct.image,
+  image: Array.isArray(frontendProduct.image) 
+    ? frontendProduct.image 
+    : (frontendProduct.image ? [frontendProduct.image] : []),
   category: frontendProduct.category,
   description: frontendProduct.description,
   features: frontendProduct.features,
