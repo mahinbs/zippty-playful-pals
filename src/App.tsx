@@ -101,6 +101,7 @@ const Terms = React.lazy(() => import("./pages/Terms"));
 const Shipping = React.lazy(() => import("./pages/Shipping"));
 const Returns = React.lazy(() => import("./pages/Returns"));
 const Warranty = React.lazy(() => import("./pages/Warranty"));
+const Orders = React.lazy(() => import("./pages/Orders"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -129,6 +130,8 @@ const App = () => {
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
                     <Route path="/warranty" element={<Warranty />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/orders/:orderId" element={<Orders />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

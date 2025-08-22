@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
-import { ShoppingCart, Menu, User, LogOut } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut, Package } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -131,6 +131,10 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => navigate('/cart')}>
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     My Cart
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                    <Package className="mr-2 h-4 w-4" />
+                    My Orders
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
