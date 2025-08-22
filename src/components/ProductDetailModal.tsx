@@ -193,7 +193,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
             {/* Description */}
             <div>
               <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {product.description || "This premium pet product is designed to provide endless entertainment and engagement for your beloved pets. Crafted with high-quality materials and innovative technology."}
               </p>
             </div>
