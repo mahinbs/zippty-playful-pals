@@ -10,11 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage, Loader2, ShoppingBag } from "lucide-react";
 import { formatPrice } from "@/services/api";
 import { productsService, AdminProduct, ProductStats, convertToDatabaseProduct } from "@/services/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import OrderManagement from "@/components/OrderManagement";
 
 // Mock admin credentials (in production, this would be in a secure backend)
 const ADMIN_CREDENTIALS = {
@@ -516,6 +517,7 @@ const Admin = () => {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -966,6 +968,10 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="orders" className="space-y-6">
+            <OrderManagement />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
