@@ -9,7 +9,7 @@ interface AdminContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  checkAdminStatus: () => Promise<boolean>;
+  checkAdminStatus: (userId?: string) => Promise<boolean>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -29,14 +29,15 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
-  const checkAdminStatus = async (): Promise<boolean> => {
-    if (!user) return false;
+  const checkAdminStatus = async (userId?: string): Promise<boolean> => {
+    const id = userId ?? user?.id;
+    if (!id) return false;
     
     try {
       const { data, error } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', id)
         .eq('is_active', true)
         .single();
 
@@ -64,7 +65,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSession(data.session);
         
         // Check if user is admin
-        const adminStatus = await checkAdminStatus();
+        const adminStatus = await checkAdminStatus(data.user.id);
         setIsAdmin(adminStatus);
         
         if (!adminStatus) {
@@ -101,7 +102,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         
         if (session?.user) {
           setTimeout(async () => {
-            const adminStatus = await checkAdminStatus();
+            const adminStatus = await checkAdminStatus(session.user.id);
             setIsAdmin(adminStatus);
           }, 0);
         } else {
@@ -118,7 +119,7 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminStatus().then(setIsAdmin);
+        checkAdminStatus(session.user.id).then(setIsAdmin);
       }
       setLoading(false);
     });
