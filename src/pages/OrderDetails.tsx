@@ -66,11 +66,14 @@ const OrderDetails: React.FC = () => {
           return;
         }
 
-        setOrder({
+        // Parse the JSON data properly
+        const parsedOrder = {
           ...data,
-          items: data.items as any,
-          delivery_address: data.delivery_address as any
-        } as Order);
+          items: typeof data.items === 'string' ? JSON.parse(data.items) : data.items,
+          delivery_address: typeof data.delivery_address === 'string' ? JSON.parse(data.delivery_address) : data.delivery_address
+        } as Order;
+        
+        setOrder(parsedOrder);
       } catch (error) {
         console.error('Error fetching order:', error);
         toast.error('Failed to load order details');
@@ -149,21 +152,24 @@ const OrderDetails: React.FC = () => {
                 Items Ordered
               </h3>
               <div className="space-y-3">
-                {order.items.map((item, index) => (
+                {order.items.map((item: any, index: number) => (
                   <div key={index} className="flex items-center space-x-4 p-3 bg-muted/50 rounded-lg">
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={item.image || '/placeholder.svg'}
+                      alt={item.name || 'Product'}
                       className="w-16 h-16 object-cover rounded"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
                     />
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className="font-medium">{item.name || 'Product'}</h4>
                       <p className="text-sm text-muted-foreground">
-                        Quantity: {item.quantity}
+                        Quantity: {item.quantity || 1}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">₹{(item.price * item.quantity).toLocaleString()}</p>
+                      <p className="font-semibold">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -181,17 +187,17 @@ const OrderDetails: React.FC = () => {
               <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                 <div className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span className="font-medium">{order.delivery_address.fullName}</span>
+                  <span className="font-medium">{order.delivery_address?.fullName || 'Not provided'}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Phone className="h-4 w-4" />
-                  <span>{order.delivery_address.phone}</span>
+                  <span>{order.delivery_address?.phone || 'Not provided'}</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <MapPin className="h-4 w-4 mt-1" />
                   <div>
-                    <p>{order.delivery_address.address}</p>
-                    <p>{order.delivery_address.city}, {order.delivery_address.state} - {order.delivery_address.pincode}</p>
+                    <p>{order.delivery_address?.address || 'Address not provided'}</p>
+                    <p>{order.delivery_address?.city || ''}{order.delivery_address?.city && order.delivery_address?.state ? ', ' : ''}{order.delivery_address?.state || ''}{order.delivery_address?.pincode ? ` - ${order.delivery_address.pincode}` : ''}</p>
                   </div>
                 </div>
               </div>
