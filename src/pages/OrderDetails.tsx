@@ -167,9 +167,9 @@ const OrderDetails: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white border rounded-lg">
               <div className="p-4 border-b">
-                <h2 className="font-medium flex items-center gap-2">
+                <h2 className="font-medium flex items-center gap-2 capitalize">
                   <Package2 className="h-4 w-4" />
-                  {order.status === 'delivered' ? 'Delivered' : 'Not yet shipped'}
+                  {order.status}
                 </h2>
               </div>
               

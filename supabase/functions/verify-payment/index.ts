@@ -59,7 +59,7 @@ serve(async (req) => {
     console.log("Verifying payment for order:", razorpay_order_id);
 
     // Verify payment signature
-    const razorpayKeySecret = "NYafLuarQ3Z7QtGOjyaRePav";
+    const razorpayKeySecret = "2y94H39svSWUNakdAaEJaUD6";
 
     // Create signature
     const bodyString = razorpay_order_id + "|" + razorpay_payment_id;

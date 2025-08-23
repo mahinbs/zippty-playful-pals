@@ -161,7 +161,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         orderId: null, // No Razorpay order ID for now
         amount: Math.round(finalAmount * 100),
         currency: 'INR',
-        keyId: 'rzp_test_iVetw1LEDRlYMN',
+        keyId: 'rzp_live_njbHEskL8XD0qSDRlYMN',
         orderDbId: order.id,
       };
     } catch (error) {
