@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import { cartAPI } from '@/services/api';
+import { cartAPI } from '../services/api';
+import { cartSyncRateLimiter } from '../lib/rateLimiter';
 
 // Types
 export interface Product {
@@ -144,54 +145,28 @@ interface CartContextType {
   isInCart: (productId: string) => boolean;
   getItemQuantity: (productId: string) => number;
   syncCart: () => Promise<void>;
+  forceSyncCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Provider component
 interface CartProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-function CartProvider({ children }: CartProviderProps) {
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  
-  // Use optional chaining to handle auth context safely
-  let user = null;
-  try {
-    const auth = useAuth();
-    user = auth.user;
-  } catch (error) {
-    console.warn('Auth context not available, cart will work in guest mode');
-  }
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSyncRef = useRef<number>(0);
+  const lastCartDataRef = useRef<string>('');
+  const SYNC_COOLDOWN = 2000; // 2 seconds cooldown between syncs
 
-  // Load cart from localStorage or backend on mount
+  // Load cart from localStorage and backend on mount
   useEffect(() => {
     const loadCart = async () => {
-      if (user) {
-        // Load from backend for authenticated users
-        try {
-          const backendCart = await cartAPI.getUserCart();
-          if (backendCart.length > 0) {
-            // Convert backend format to frontend format
-            const cartItems = backendCart.map((item: any) => ({
-              product: item.product,
-              quantity: item.quantity,
-            }));
-            dispatch({ type: 'LOAD_CART', payload: cartItems });
-          }
-        } catch (error) {
-          console.error('Error loading cart from backend:', error);
-          // Fallback to localStorage
-          loadFromLocalStorage();
-        }
-      } else {
-        // Load from localStorage for guest users
-        loadFromLocalStorage();
-      }
-    };
-
-    const loadFromLocalStorage = () => {
+      // Load from localStorage first
       const savedCart = localStorage.getItem('zippty-cart');
       if (savedCart) {
         try {
@@ -199,6 +174,18 @@ function CartProvider({ children }: CartProviderProps) {
           dispatch({ type: 'LOAD_CART', payload: cartItems });
         } catch (error) {
           console.error('Error loading cart from localStorage:', error);
+        }
+      }
+
+      // Load from backend for authenticated users
+      if (user) {
+        try {
+          const backendCart = await cartAPI.getUserCart();
+          if (backendCart.length > 0) {
+            dispatch({ type: 'LOAD_CART', payload: backendCart });
+          }
+        } catch (error) {
+          console.error('Error loading cart from backend:', error);
         }
       }
     };
@@ -210,24 +197,82 @@ function CartProvider({ children }: CartProviderProps) {
   useEffect(() => {
     localStorage.setItem('zippty-cart', JSON.stringify(state.items));
     
-    // Sync with backend for authenticated users
+    // Check if cart data has actually changed
+    const currentCartData = JSON.stringify(state.items);
+    if (currentCartData === lastCartDataRef.current) {
+      return; // No change, skip sync
+    }
+    lastCartDataRef.current = currentCartData;
+    
+    // Sync with backend for authenticated users with debouncing and rate limiting
     if (user && state.items.length > 0) {
-      syncCartWithBackend();
+      const now = Date.now();
+      if (now - lastSyncRef.current > SYNC_COOLDOWN) {
+        // Clear any pending sync
+        if (syncTimeoutRef.current) {
+          clearTimeout(syncTimeoutRef.current);
+        }
+        
+        // Debounce the sync to avoid rapid successive calls
+        syncTimeoutRef.current = setTimeout(() => {
+          syncCartWithBackend();
+        }, 500); // 500ms debounce
+      }
     }
   }, [state.items, user]);
 
   const syncCartWithBackend = async () => {
     if (!user) return;
     
+    const now = Date.now();
+    if (now - lastSyncRef.current < SYNC_COOLDOWN) {
+      console.log('Skipping sync due to rate limiting');
+      return;
+    }
+    
     dispatch({ type: 'SET_SYNCING', payload: true });
     try {
       await cartAPI.syncCart(state.items);
-    } catch (error) {
+      lastSyncRef.current = now;
+    } catch (error: any) {
       console.error('Error syncing cart with backend:', error);
+      
+      // Handle rate limiting more aggressively
+      if (error?.message?.includes('rate limit') || 
+          error?.message?.includes('429') || 
+          error?.status === 429 ||
+          error?.code === 'RATE_LIMIT_EXCEEDED') {
+        console.warn('Rate limit hit, extending cooldown period');
+        lastSyncRef.current = now + 10000; // 10 seconds cooldown
+        
+        // Store cart locally as backup
+        localStorage.setItem('zippty-cart-backup', JSON.stringify({
+          items: state.items,
+          timestamp: now
+        }));
+      } else if (error?.message?.includes('Too Many Requests')) {
+        console.warn('Too many requests, extending cooldown period');
+        lastSyncRef.current = now + 15000; // 15 seconds cooldown
+        
+        // Store cart locally as backup
+        localStorage.setItem('zippty-cart-backup', JSON.stringify({
+          items: state.items,
+          timestamp: now
+        }));
+      }
     } finally {
       dispatch({ type: 'SET_SYNCING', payload: false });
     }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Cart actions
   const addItem = (product: Product) => {
@@ -257,6 +302,16 @@ function CartProvider({ children }: CartProviderProps) {
 
   const syncCart = async () => {
     if (user) {
+      // Force sync by resetting the cooldown
+      lastSyncRef.current = 0;
+      await syncCartWithBackend();
+    }
+  };
+
+  // Manual sync function that bypasses rate limiting (for user-initiated actions)
+  const forceSyncCart = async () => {
+    if (user) {
+      lastSyncRef.current = 0;
       await syncCartWithBackend();
     }
   };
@@ -270,6 +325,7 @@ function CartProvider({ children }: CartProviderProps) {
     isInCart,
     getItemQuantity,
     syncCart,
+    forceSyncCart,
   };
 
   return (

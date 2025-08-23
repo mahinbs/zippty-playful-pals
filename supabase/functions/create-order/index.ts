@@ -18,51 +18,80 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-  );
-
   try {
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+    );
+
     // Get authenticated user
-    const authHeader = req.headers.get("Authorization")!;
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Authorization header missing");
+    }
+
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
+    const { data: userData, error: authError } = await supabaseClient.auth.getUser(token);
     
-    if (!user) {
+    if (authError || !userData.user) {
+      console.error("Auth error:", authError);
       throw new Error("User not authenticated");
     }
 
-    const { amount, items, deliveryAddress }: CreateOrderRequest = await req.json();
+    const user = userData.user;
+    console.log("User authenticated:", user.id);
 
-    // Create Razorpay order
-    const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
-    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
-
-    if (!razorpayKeyId || !razorpayKeySecret) {
-      throw new Error("Razorpay credentials not configured");
+    // Parse request body
+    let body: CreateOrderRequest;
+    try {
+      body = await req.json();
+    } catch (e) {
+      throw new Error("Invalid JSON in request body");
     }
 
+    const { amount, items, deliveryAddress } = body;
+
+    // Validate input
+    if (!amount || amount <= 0) {
+      throw new Error("Invalid amount");
+    }
+
+    if (!items || items.length === 0) {
+      throw new Error("No items in cart");
+    }
+
+    if (!deliveryAddress) {
+      throw new Error("Delivery address is required");
+    }
+
+    console.log("Creating order for amount:", amount);
+
+    // Create Razorpay order
+    const razorpayKeyId = "rzp_test_iVetw1LEDRlYMN";
+    const razorpayKeySecret = "NYafLuarQ3Z7QtGOjyaRePav";
+
     // Create order with Razorpay
-    const razorpayOrder = await fetch("https://api.razorpay.com/v1/orders", {
+    const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
       },
       body: JSON.stringify({
-        amount: amount * 100, // Convert to paise
+        amount: Math.round(amount * 100), // Convert to paise and ensure it's an integer
         currency: "INR",
-        receipt: `order_${Date.now()}`,
+        receipt: `order_${Date.now()}_${user.id.substring(0, 8)}`,
       }),
     });
 
-    if (!razorpayOrder.ok) {
-      throw new Error("Failed to create Razorpay order");
+    if (!razorpayResponse.ok) {
+      const errorText = await razorpayResponse.text();
+      console.error("Razorpay API error:", errorText);
+      throw new Error(`Failed to create Razorpay order: ${razorpayResponse.statusText}`);
     }
 
-    const razorpayOrderData = await razorpayOrder.json();
+    const razorpayOrderData = await razorpayResponse.json();
+    console.log("Razorpay order created:", razorpayOrderData.id);
 
     // Create order in database using service role key to bypass RLS
     const supabaseService = createClient(
@@ -71,12 +100,12 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { data: order, error } = await supabaseService
+    const { data: order, error: dbError } = await supabaseService
       .from("orders")
       .insert({
         user_id: user.id,
         razorpay_order_id: razorpayOrderData.id,
-        amount: amount,
+        amount: Math.round(amount * 100), // Store in paise
         items: items,
         delivery_address: deliveryAddress,
         status: "pending",
@@ -84,10 +113,12 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (error) {
-      console.error("Database error:", error);
+    if (dbError) {
+      console.error("Database error:", dbError);
       throw new Error("Failed to create order in database");
     }
+
+    console.log("Order created in database:", order.id);
 
     return new Response(
       JSON.stringify({
@@ -105,7 +136,9 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error creating order:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : "Unknown error occurred" 
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

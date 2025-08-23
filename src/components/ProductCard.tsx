@@ -41,7 +41,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
           <img 
             src={product.image} 
             alt={product.name}
-            className={`w-full h-80 object-cover transition-all duration-700 ${
+            className={`w-full object-cover aspect-square transition-all duration-700 ${
               isHovered ? 'scale-110 brightness-110' : 'scale-100'
             }`}
           />
