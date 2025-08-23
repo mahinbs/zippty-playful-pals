@@ -67,9 +67,13 @@ serve(async (req) => {
 
     console.log("Creating order for amount:", amount);
 
-    // Razorpay keys (test). Consider using environment secrets in production.
-    const razorpayKeyId = "rzp_test_iVetw1LEDRlYMN";
-    const razorpayKeySecret = "NYafLuarQ3Z7QtGOjyaRePav";
+    // Get Razorpay keys from Supabase secrets
+    const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
+    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+
+    if (!razorpayKeyId || !razorpayKeySecret) {
+      throw new Error("Razorpay credentials not configured");
+    }
 
     // Idempotency: if an order with this key already exists for this user, return it
     if (idempotency_key) {
