@@ -10,6 +10,7 @@ interface CreateOrderRequest {
   amount: number;
   items: any[];
   deliveryAddress: any;
+  idempotency_key?: string;
 }
 
 serve(async (req) => {
@@ -49,7 +50,7 @@ serve(async (req) => {
       throw new Error("Invalid JSON in request body");
     }
 
-    const { amount, items, deliveryAddress } = body;
+    const { amount, items, deliveryAddress, idempotency_key } = body;
 
     // Validate input
     if (!amount || amount <= 0) {
@@ -66,9 +67,38 @@ serve(async (req) => {
 
     console.log("Creating order for amount:", amount);
 
-    // Create Razorpay order
+    // Razorpay keys (test). Consider using environment secrets in production.
     const razorpayKeyId = "rzp_test_iVetw1LEDRlYMN";
     const razorpayKeySecret = "NYafLuarQ3Z7QtGOjyaRePav";
+
+    // Idempotency: if an order with this key already exists for this user, return it
+    if (idempotency_key) {
+      const { data: existingOrder } = await supabaseClient
+        .from("orders")
+        .select("id, razorpay_order_id, amount, currency")
+        .eq("user_id", user.id)
+        .eq("idempotency_key", idempotency_key)
+        .maybeSingle();
+
+      if (existingOrder && existingOrder.razorpay_order_id) {
+        console.log("Existing order found for idempotency_key:", idempotency_key);
+        return new Response(
+          JSON.stringify({
+            orderId: existingOrder.razorpay_order_id,
+            amount: existingOrder.amount,
+            currency: existingOrder.currency || "INR",
+            keyId: razorpayKeyId,
+            orderDbId: existingOrder.id,
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+    }
+
+    console.log("No existing order. Creating new Razorpay order");
 
     // Create order with Razorpay
     const razorpayResponse = await fetch("https://api.razorpay.com/v1/orders", {
@@ -102,14 +132,18 @@ serve(async (req) => {
 
     const { data: order, error: dbError } = await supabaseService
       .from("orders")
-      .insert({
-        user_id: user.id,
-        razorpay_order_id: razorpayOrderData.id,
-        amount: Math.round(amount * 100), // Store in paise
-        items: items,
-        delivery_address: deliveryAddress,
-        status: "pending",
-      })
+      .upsert(
+        {
+          user_id: user.id,
+          razorpay_order_id: razorpayOrderData.id,
+          amount: Math.round(amount * 100), // Store in paise
+          items: items,
+          delivery_address: deliveryAddress,
+          status: "pending",
+          idempotency_key: idempotency_key || null,
+        },
+        { onConflict: "idempotency_key" }
+      )
       .select()
       .single();
 

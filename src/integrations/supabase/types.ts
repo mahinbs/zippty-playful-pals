@@ -51,6 +51,7 @@ export type Database = {
           currency: string | null
           delivery_address: Json
           id: string
+          idempotency_key: string | null
           items: Json
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
@@ -64,6 +65,7 @@ export type Database = {
           currency?: string | null
           delivery_address: Json
           id?: string
+          idempotency_key?: string | null
           items: Json
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           currency?: string | null
           delivery_address?: Json
           id?: string
+          idempotency_key?: string | null
           items?: Json
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null

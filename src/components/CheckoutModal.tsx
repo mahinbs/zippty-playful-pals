@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +67,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const { items, total } = state;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const idempotencyKeyRef = React.useRef<string>(
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`
+  );
   const [address, setAddress] = useState<DeliveryAddress>({
     fullName: '',
     phone: '',
@@ -125,6 +130,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             amount: finalAmount,
             items: items,
             deliveryAddress: address,
+            idempotency_key: idempotencyKeyRef.current,
           },
         });
 
@@ -143,14 +149,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         
         const { data: order, error: dbError } = await supabase
           .from('orders')
-          .insert({
-            user_id: user?.id,
-            razorpay_order_id: orderId,
-            amount: Math.round(finalAmount * 100), // Store in paise
-            items: items,
-            delivery_address: address,
-            status: 'pending',
-          } as any)
+          .upsert(
+            {
+              user_id: user?.id,
+              razorpay_order_id: orderId,
+              amount: Math.round(finalAmount * 100), // Store in paise
+              items: items,
+              delivery_address: address,
+              status: 'pending',
+              idempotency_key: idempotencyKeyRef.current,
+            } as any,
+            { onConflict: 'idempotency_key' }
+          )
           .select()
           .single();
 
@@ -236,6 +246,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             clearCart();
             onSuccess(orderData.orderDbId);
             onClose();
+            // Regenerate idempotency key for next order
+            idempotencyKeyRef.current =
+              typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                ? crypto.randomUUID()
+                : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             toast.success('Order placed successfully! Payment completed.');
           } catch (error) {
             console.error('Payment processing failed:', error);
@@ -252,6 +267,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         modal: {
           ondismiss: () => {
             setLoading(false);
+            // Regenerate key on cancel to avoid stale key reuse
+            idempotencyKeyRef.current =
+              typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                ? crypto.randomUUID()
+                : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             toast.info('Payment cancelled');
           },
         },
