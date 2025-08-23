@@ -39,3 +39,13 @@ ON public.admin_users
 FOR DELETE
 TO authenticated
 USING (is_admin());
+
+-- Add idempotency_key column to orders table
+ALTER TABLE public.orders 
+ADD COLUMN idempotency_key TEXT UNIQUE;
+
+-- Create index for better performance
+CREATE INDEX idx_orders_idempotency_key ON public.orders(idempotency_key);
+
+-- Add comment for documentation
+COMMENT ON COLUMN public.orders.idempotency_key IS 'Unique key to prevent duplicate orders';

@@ -34,7 +34,7 @@ interface RazorpayOptions {
   key: string;
   amount: number;
   currency: string;
-  order_id: string;
+  order_id?: string; // Make optional since we don't use it in fallback
   name: string;
   description: string;
   handler: (response: RazorpayResponse) => void;
@@ -120,61 +120,37 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     });
   };
 
-  // Create Razorpay order and save to database
-  const createRazorpayOrder = async (finalAmount: number) => {
+  // Create order in database (simplified approach)
+  const createOrder = async (finalAmount: number) => {
     try {
-      // Try to use Edge Function first
-      try {
-        const { data, error } = await supabase.functions.invoke('create-order', {
-          body: {
-            amount: finalAmount,
-            items: items,
-            deliveryAddress: address,
-            idempotency_key: idempotencyKeyRef.current,
-          },
-        });
+      // Create order directly in database
+      const { data: order, error: dbError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id,
+          razorpay_order_id: null, // Will be set after payment
+          amount: Math.round(finalAmount * 100), // Store in paise
+          items: items,
+          delivery_address: address,
+          status: 'pending',
+          idempotency_key: idempotencyKeyRef.current,
+        })
+        .select()
+        .single();
 
-        if (error) {
-          console.error('Edge function error:', error);
-          throw new Error(error.message || 'Failed to create order');
-        }
-
-        console.log('Order created successfully via Edge Function:', data);
-        return data;
-      } catch (edgeFunctionError) {
-        console.warn('Edge Function failed, using fallback method:', edgeFunctionError);
-        
-        // Fallback: Create order directly in database with a simple ID
-        const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
-        const { data: order, error: dbError } = await supabase
-          .from('orders')
-          .insert({
-            user_id: user?.id,
-            razorpay_order_id: orderId,
-            amount: Math.round(finalAmount * 100), // Store in paise
-            items: items as any,
-            delivery_address: address as any,
-            status: 'pending',
-            idempotency_key: idempotencyKeyRef.current,
-          } as any)
-          .select()
-          .single();
-
-        if (dbError) {
-          console.error('Database error:', dbError);
-          throw new Error('Failed to create order in database');
-        }
-
-        // Return data in the same format as Edge Function
-        return {
-          orderId: orderId,
-          amount: Math.round(finalAmount * 100),
-          currency: 'INR',
-          keyId: 'rzp_test_iVetw1LEDRlYMN',
-          orderDbId: order.id,
-        };
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to create order in database');
       }
+
+      console.log('Order created successfully:', order.id);
+      return {
+        orderId: null, // No Razorpay order ID for now
+        amount: Math.round(finalAmount * 100),
+        currency: 'INR',
+        keyId: 'rzp_test_iVetw1LEDRlYMN',
+        orderDbId: order.id,
+      };
     } catch (error) {
       console.error('Error creating order:', error);
       throw error;
@@ -199,45 +175,27 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       // Load Razorpay script
       await loadRazorpayScript();
 
-      // Create Razorpay order and save to database
-      const orderData = await createRazorpayOrder(finalAmount);
+      // Create order in database first
+      const orderData = await createOrder(finalAmount);
 
       // Initialize Razorpay payment
       const options: RazorpayOptions = {
-        key: orderData.keyId, // Use key from Edge Function
+        key: orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency,
-        order_id: orderData.orderId,
         name: 'Zippty - Premium Pet Care',
         description: `Order for ${items.length} item${items.length > 1 ? 's' : ''}`,
         handler: async (response: RazorpayResponse) => {
           try {
-            // Try to verify payment using Edge Function
-            try {
-              const { error: verifyError } = await supabase.functions.invoke('verify-payment', {
-                body: {
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                },
-              });
-
-              if (verifyError) {
-                console.error('Payment verification error:', verifyError);
-                throw new Error(verifyError.message || 'Payment verification failed');
-              }
-            } catch (verifyError) {
-              console.warn('Payment verification failed, using fallback:', verifyError);
-              
-              // Fallback: Update order status directly
-              await supabase
-                .from('orders')
-                .update({
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  status: 'paid',
-                })
-                .eq('razorpay_order_id', response.razorpay_order_id);
-            }
+            // Update order with Razorpay details
+            await supabase
+              .from('orders')
+              .update({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                status: 'paid',
+              })
+              .eq('id', orderData.orderDbId);
 
             // Success
             clearCart();

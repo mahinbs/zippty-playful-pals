@@ -482,7 +482,7 @@ const Admin = () => {
   // Login Form
   if (!user || !isAdmin) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="container mx-auto px-4 py-20">
           <div className="max-w-md mx-auto">
             <Card>
