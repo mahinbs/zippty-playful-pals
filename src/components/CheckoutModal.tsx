@@ -164,6 +164,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           orderId: orderId,
           amount: Math.round(finalAmount * 100),
           currency: 'INR',
+          keyId: 'rzp_test_iVetw1LEDRlYMN',
           orderDbId: order.id,
         };
       }
@@ -196,7 +197,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
 
       // Initialize Razorpay payment
       const options: RazorpayOptions = {
-        key: 'rzp_test_iVetw1LEDRlYMN', // Your test key
+        key: orderData.keyId, // Use key from Edge Function
         amount: orderData.amount,
         currency: orderData.currency,
         order_id: orderData.orderId,
