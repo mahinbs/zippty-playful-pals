@@ -201,7 +201,7 @@ const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     lastCartDataRef.current = currentCartData;
     
     // Sync with backend for authenticated users with debouncing and rate limiting
-    if (user && state.items.length > 0) {
+    if (user) {
       const now = Date.now();
       if (now - lastSyncRef.current > SYNC_COOLDOWN) {
         // Clear any pending sync
