@@ -58,6 +58,9 @@ import {
   convertToDatabaseProduct,
 } from "@/services/products";
 import OrderManagement from "@/components/OrderManagement";
+import AdminAnalytics from "@/components/AdminAnalytics";
+import AdminSettings from "@/components/AdminSettings";
+import AdminOrderStats from "@/components/AdminOrderStats";
 import { useAdmin } from "@/contexts/AdminContext";
 import { toast } from "sonner";
 
@@ -684,6 +687,9 @@ const Admin = () => {
           </CardContent>
         </Card>
 
+        {/* Order Stats */}
+        <AdminOrderStats />
+
         {/* Main Content */}
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
@@ -1244,35 +1250,27 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics Dashboard</CardTitle>
-                <CardDescription>
-                  View your store performance and insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
                 <p className="text-muted-foreground">
-                  Analytics features coming soon...
+                  View your store performance and insights
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+              <AdminAnalytics />
+            </div>
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Admin Settings</CardTitle>
-                <CardDescription>
-                  Manage your admin account and preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+            <div>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold">Admin Settings</h2>
                 <p className="text-muted-foreground">
-                  Settings features coming soon...
+                  Manage your admin account and preferences
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+              <AdminSettings />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
