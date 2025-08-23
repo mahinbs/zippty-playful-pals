@@ -185,19 +185,19 @@ const Orders = () => {
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="text-foreground">{formatPrice(selectedOrder.amount)}</span>
+                    <span className="text-foreground">{formatPrice(selectedOrder.amount / 100)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="text-foreground">
-                      {selectedOrder.amount >= 4000 ? 'Free' : formatPrice(200)}
+                      {selectedOrder.amount >= 400000 ? 'Free' : formatPrice(200)}
                     </span>
                   </div>
                   <div className="border-t border-border pt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold text-foreground">Total</span>
                       <span className="font-bold text-primary">
-                        {formatPrice(selectedOrder.amount + (selectedOrder.amount >= 4000 ? 0 : 200))}
+                        {formatPrice((selectedOrder.amount / 100) + (selectedOrder.amount >= 400000 ? 0 : 200))}
                       </span>
                     </div>
                   </div>
@@ -287,7 +287,7 @@ const Orders = () => {
                       {order.items.length} item{order.items.length !== 1 ? 's' : ''}
                     </p>
                     <p className="font-semibold text-primary">
-                      {formatPrice(order.amount + (order.amount >= 4000 ? 0 : 200))}
+                      {formatPrice((order.amount / 100) + (order.amount >= 400000 ? 0 : 200))}
                     </p>
                   </div>
                   <Button variant="outline" size="sm">

@@ -269,7 +269,7 @@ const OrderManagement: React.FC = () => {
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {formatPrice(order.amount + (order.amount >= 4000 ? 0 : 200))}
+                      {formatPrice((order.amount / 100) + (order.amount >= 400000 ? 0 : 200))}
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(order.status)}
