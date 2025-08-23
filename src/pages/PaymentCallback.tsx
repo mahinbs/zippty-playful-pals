@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 const PaymentPage: React.FC = () => {
   useEffect(() => {
@@ -29,34 +28,18 @@ const PaymentPage: React.FC = () => {
             handler: async (response: any) => {
               try {
                 console.log('Payment successful:', response);
-
-                // Verify payment on server and update order
-                const { data, error } = await supabase.functions.invoke('verify-payment', {
-                  body: {
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_signature: response.razorpay_signature,
-                  },
-                });
-
-                if (error) {
-                  console.error('Verify-payment error:', error);
-                  throw new Error(error.message || 'Verification failed');
-                }
-
-                const orderIdFromDb = data?.order?.id;
-
+                
                 // Use localStorage for cross-tab communication
                 localStorage.setItem('paymentSuccess', 'true');
-                localStorage.setItem('paymentOrderId', orderIdFromDb || (paymentData.orderDbId ?? ''));
+                localStorage.setItem('paymentOrderId', paymentData.orderDbId);
                 localStorage.setItem('razorpayPaymentId', response.razorpay_payment_id);
                 localStorage.setItem('razorpayOrderId', response.razorpay_order_id);
                 localStorage.setItem('paymentTimestamp', Date.now().toString());
-
+                
                 // Small delay to ensure localStorage is set
                 await new Promise(resolve => setTimeout(resolve, 100));
-
-                console.log('Payment verified and saved, closing window');
+                
+                console.log('Payment data saved to localStorage, closing window');
                 // Close this payment window
                 window.close();
               } catch (error) {
