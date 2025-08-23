@@ -252,12 +252,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 toast.error('Payment completed but order update failed. Please contact support.');
               } else {
                 console.log('Order updated successfully');
-                // Success - redirect to order details page
+                // Success - redirect to orders page
                 clearCart();
                 onClose();
                 toast.success('Payment completed successfully!');
-                // Redirect to order details page
-                window.location.href = `/order/${paymentOrderId}`;
+                // Redirect to orders page
+                window.location.href = '/orders';
               }
             } catch (error) {
               console.error('Error processing payment success:', error);
