@@ -155,7 +155,7 @@ interface CartProviderProps {
   children: React.ReactNode;
 }
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, initialState);
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
