@@ -131,40 +131,35 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     return `/payment-callback?data=${encodedData}`;
   };
 
-  // Create order in database (simplified approach)
+  // Create order via Edge Function to get secure keyId and Razorpay order
   const createOrder = async (finalAmount: number) => {
     try {
-      // Create order directly in database
-      const orderInsert: Database['public']['Tables']['orders']['Insert'] = {
-        user_id: user?.id || null,
-        razorpay_order_id: null,
-        amount: Math.round(finalAmount * 100),
-        items: items as any,
-        delivery_address: address as any,
-        status: 'pending',
-        idempotency_key: idempotencyKeyRef.current,
-      };
+      const { data, error } = await supabase.functions.invoke('create-order', {
+        body: {
+          amount: finalAmount, // rupees; function will convert to paise
+          items,
+          deliveryAddress: address,
+          idempotency_key: idempotencyKeyRef.current,
+        },
+      });
 
-      const { data: order, error: dbError } = await supabase
-        .from('orders')
-        .insert(orderInsert)
-        .select()
-        .single();
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw new Error('Failed to create order in database');
+      if (error) {
+        console.error('Create-order function error:', error);
+        throw new Error(error.message || 'Failed to create order');
       }
 
-      console.log('Order created successfully:', order.id);
-      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-      const keyId = isHttps ? 'rzp_live_njbHEskL8XD0qSDRlYMN' : 'rzp_test_iVetw1LEDRlYMN';
+      if (!data || !data.orderId || !data.keyId || !data.orderDbId) {
+        console.error('Invalid create-order response:', data);
+        throw new Error('Invalid response from order creation');
+      }
+
+      console.log('Order created successfully:', data.orderDbId);
       return {
-        orderId: null, // No Razorpay order ID for now
-        amount: Math.round(finalAmount * 100),
-        currency: 'INR',
-        keyId,
-        orderDbId: order.id,
+        orderId: data.orderId,
+        amount: data.amount, // paise
+        currency: data.currency,
+        keyId: data.keyId,
+        orderDbId: data.orderDbId,
       };
     } catch (error) {
       console.error('Error creating order:', error);
