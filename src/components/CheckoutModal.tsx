@@ -8,6 +8,8 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { OrderSuccess } from './OrderSuccess';
+import type { Database } from '@/integrations/supabase/types';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -67,6 +69,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const { items, total } = state;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [successOrderId, setSuccessOrderId] = useState('');
   const idempotencyKeyRef = React.useRef<string>(
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -104,37 +108,59 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     return true;
   };
 
-  const loadRazorpayScript = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (window.Razorpay) {
-        resolve();
-        return;
+  // Create payment URL for new tab
+  const createPaymentUrl = (orderData: any, finalAmount: number) => {
+    const paymentData = {
+      key: orderData.keyId,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      order_id: orderData.orderId,
+      name: 'Zippty - Premium Pet Care',
+      description: `Order for ${items.length} item${items.length > 1 ? 's' : ''}`,
+      prefill: {
+        name: address.fullName,
+        contact: address.phone,
+      },
+      theme: {
+        color: '#6366f1',
+      },
+      callback_url: `${window.location.origin}/payment-callback`,
+      redirect: true,
+      modal: {
+        escape: false,
+        backdrop_close: false
       }
-
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error('Failed to load Razorpay script'));
-      document.body.appendChild(script);
+    };
+    
+    const params = new URLSearchParams();
+    Object.entries(paymentData).forEach(([key, value]) => {
+      if (typeof value === 'object') {
+        params.append(key, JSON.stringify(value));
+      } else {
+        params.append(key, String(value));
+      }
     });
+    
+    return `https://checkout.razorpay.com/v1/checkout.html?${params.toString()}`;
   };
 
   // Create order in database (simplified approach)
   const createOrder = async (finalAmount: number) => {
     try {
       // Create order directly in database
+      const orderInsert: Database['public']['Tables']['orders']['Insert'] = {
+        user_id: user?.id || null,
+        razorpay_order_id: null,
+        amount: Math.round(finalAmount * 100),
+        items: items as any,
+        delivery_address: address as any,
+        status: 'pending',
+        idempotency_key: idempotencyKeyRef.current,
+      };
+
       const { data: order, error: dbError } = await supabase
         .from('orders')
-        .insert({
-          user_id: user?.id,
-          razorpay_order_id: null, // Will be set after payment
-          amount: Math.round(finalAmount * 100), // Store in paise
-          items: items,
-          delivery_address: address,
-          status: 'pending',
-          idempotency_key: idempotencyKeyRef.current,
-        })
+        .insert(orderInsert)
         .select()
         .single();
 
@@ -172,72 +198,82 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       const shippingCost = total >= 4000 ? 0 : 200;
       const finalAmount = total + shippingCost;
 
-      // Load Razorpay script
-      await loadRazorpayScript();
-
       // Create order in database first
       const orderData = await createOrder(finalAmount);
 
-      // Initialize Razorpay payment
-      const options: RazorpayOptions = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'Zippty - Premium Pet Care',
-        description: `Order for ${items.length} item${items.length > 1 ? 's' : ''}`,
-        handler: async (response: RazorpayResponse) => {
-          try {
-            // Update order with Razorpay details
-            await supabase
-              .from('orders')
-              .update({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                status: 'paid',
-              })
-              .eq('id', orderData.orderDbId);
+      // Store order data for callback handling
+      sessionStorage.setItem('pendingOrderData', JSON.stringify({
+        orderDbId: orderData.orderDbId,
+        finalAmount,
+        items: items.length
+      }));
+
+      // Create payment URL
+      const paymentUrl = createPaymentUrl(orderData, finalAmount);
+
+      // Open payment in new tab
+      const paymentWindow = window.open(paymentUrl, 'razorpay-payment', 'width=800,height=600,scrollbars=yes,resizable=yes');
+
+      if (!paymentWindow) {
+        toast.error('Please allow popups for payment processing');
+        setLoading(false);
+        return;
+      }
+
+      // Listen for payment completion
+      const checkPaymentStatus = setInterval(async () => {
+        if (paymentWindow.closed) {
+          clearInterval(checkPaymentStatus);
+          setLoading(false);
+
+          // Check if payment was successful
+          const paymentSuccess = sessionStorage.getItem('paymentSuccess');
+          const paymentOrderId = sessionStorage.getItem('paymentOrderId');
+
+          if (paymentSuccess === 'true' && paymentOrderId) {
+            // Clear session storage
+            sessionStorage.removeItem('paymentSuccess');
+            sessionStorage.removeItem('paymentOrderId');
+            sessionStorage.removeItem('pendingOrderData');
 
             // Success
             clearCart();
-            onSuccess(orderData.orderDbId);
+            setSuccessOrderId(paymentOrderId);
+            setShowOrderSuccess(true);
             onClose();
+            
             // Regenerate idempotency key for next order
             idempotencyKeyRef.current =
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
                 ? crypto.randomUUID()
                 : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-            toast.success('Order placed successfully! Payment completed.');
-          } catch (error) {
-            console.error('Payment processing failed:', error);
-            toast.error('Payment processing failed. Please contact support.');
-          }
-        },
-        prefill: {
-          name: address.fullName,
-          contact: address.phone,
-        },
-        theme: {
-          color: '#6366f1',
-        },
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
+          } else {
+            // Payment was cancelled or failed
+            sessionStorage.removeItem('pendingOrderData');
             // Regenerate key on cancel to avoid stale key reuse
             idempotencyKeyRef.current =
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
                 ? crypto.randomUUID()
                 : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-            toast.info('Payment cancelled');
-          },
-        },
-      };
+            toast.info('Payment was cancelled or failed');
+          }
+        }
+      }, 1000);
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      // Set timeout to close payment window after 10 minutes
+      setTimeout(() => {
+        if (!paymentWindow.closed) {
+          paymentWindow.close();
+          clearInterval(checkPaymentStatus);
+          setLoading(false);
+          sessionStorage.removeItem('pendingOrderData');
+          toast.error('Payment timeout. Please try again.');
+        }
+      }, 600000); // 10 minutes
+
     } catch (error) {
       console.error('Payment failed:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to initiate payment. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -246,112 +282,121 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
   const finalAmount = total + shippingCost;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Checkout</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Delivery Address Form */}
-          <div className="space-y-3">
-            <h3 className="font-semibold">Delivery Address</h3>
-            
-            <div className="grid grid-cols-2 gap-3">
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Checkout</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Delivery Address Form */}
+            <div className="space-y-3">
+              <h3 className="font-semibold">Delivery Address</h3>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={address.fullName}
+                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={address.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="10-digit phone number"
+                    maxLength={10}
+                  />
+                </div>
+              </div>
+
               <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={address.fullName}
-                  onChange={(e) => handleInputChange('fullName', e.target.value)}
-                  placeholder="Enter full name"
+                <Label htmlFor="address">Address</Label>
+                <Textarea
+                  id="address"
+                  value={address.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="Enter complete address"
+                  className="min-h-[80px]"
                 />
               </div>
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={address.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="10-digit phone number"
-                  maxLength={10}
-                />
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={address.city}
+                    onChange={(e) => handleInputChange('city', e.target.value)}
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">State</Label>
+                  <Input
+                    id="state"
+                    value={address.state}
+                    onChange={(e) => handleInputChange('state', e.target.value)}
+                    placeholder="State"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="pincode">Pincode</Label>
+                  <Input
+                    id="pincode"
+                    value={address.pincode}
+                    onChange={(e) => handleInputChange('pincode', e.target.value)}
+                    placeholder="6-digit pincode"
+                    maxLength={6}
+                  />
+                </div>
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                value={address.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="Enter complete address"
-                className="min-h-[80px]"
-              />
+            {/* Order Summary */}
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-2">Order Summary</h3>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span>Items ({items.length})</span>
+                  <span>₹{total.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+                </div>
+                <div className="flex justify-between font-semibold border-t pt-1">
+                  <span>Total</span>
+                  <span>₹{finalAmount.toLocaleString()}</span>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  value={address.city}
-                  onChange={(e) => handleInputChange('city', e.target.value)}
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <Label htmlFor="state">State</Label>
-                <Input
-                  id="state"
-                  value={address.state}
-                  onChange={(e) => handleInputChange('state', e.target.value)}
-                  placeholder="State"
-                />
-              </div>
-              <div>
-                <Label htmlFor="pincode">Pincode</Label>
-                <Input
-                  id="pincode"
-                  value={address.pincode}
-                  onChange={(e) => handleInputChange('pincode', e.target.value)}
-                  placeholder="6-digit pincode"
-                  maxLength={6}
-                />
-              </div>
-            </div>
+            {/* Payment Button */}
+            <Button 
+              onClick={handlePayment} 
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? 'Opening Payment...' : `Pay ₹${finalAmount.toLocaleString()}`}
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Order Summary */}
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-2">Order Summary</h3>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>Items ({items.length})</span>
-                <span>₹{total.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
-              </div>
-              <div className="flex justify-between font-semibold border-t pt-1">
-                <span>Total</span>
-                <span>₹{finalAmount.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Payment Button */}
-          <Button 
-            onClick={handlePayment} 
-            disabled={loading}
-            className="w-full"
-            size="lg"
-          >
-            {loading ? 'Processing...' : `Pay ₹${finalAmount.toLocaleString()}`}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <OrderSuccess
+        isOpen={showOrderSuccess}
+        onClose={() => setShowOrderSuccess(false)}
+        orderId={successOrderId}
+        orderTotal={finalAmount}
+      />
+    </>
   );
 };
