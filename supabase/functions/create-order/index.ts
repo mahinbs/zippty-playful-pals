@@ -136,18 +136,15 @@ serve(async (req) => {
 
     const { data: order, error: dbError } = await supabaseService
       .from("orders")
-      .upsert(
-        {
-          user_id: user.id,
-          razorpay_order_id: razorpayOrderData.id,
-          amount: Math.round(amount * 100), // Store in paise
-          items: items,
-          delivery_address: deliveryAddress,
-          status: "pending",
-          idempotency_key: idempotency_key || null,
-        },
-        { onConflict: "idempotency_key" }
-      )
+      .insert({
+        user_id: user.id,
+        razorpay_order_id: razorpayOrderData.id,
+        amount: Math.round(amount * 100), // Store in paise
+        items: items,
+        delivery_address: deliveryAddress,
+        status: "pending",
+        idempotency_key: idempotency_key || null,
+      })
       .select()
       .single();
 

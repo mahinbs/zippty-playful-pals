@@ -149,18 +149,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         
         const { data: order, error: dbError } = await supabase
           .from('orders')
-          .upsert(
-            {
-              user_id: user?.id,
-              razorpay_order_id: orderId,
-              amount: Math.round(finalAmount * 100), // Store in paise
-              items: items,
-              delivery_address: address,
-              status: 'pending',
-              idempotency_key: idempotencyKeyRef.current,
-            } as any,
-            { onConflict: 'idempotency_key' }
-          )
+          .insert({
+            user_id: user?.id,
+            razorpay_order_id: orderId,
+            amount: Math.round(finalAmount * 100), // Store in paise
+            items: items as any,
+            delivery_address: address as any,
+            status: 'pending',
+            idempotency_key: idempotencyKeyRef.current,
+          } as any)
           .select()
           .single();
 
