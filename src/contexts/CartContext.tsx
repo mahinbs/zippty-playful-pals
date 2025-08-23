@@ -151,10 +151,6 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Provider component
-interface CartProviderProps {
-  children: React.ReactNode;
-}
-
 const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [state, dispatch] = useReducer(cartReducer, initialState);
