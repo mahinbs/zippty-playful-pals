@@ -104,22 +104,23 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setTimeout(async () => {
             const adminStatus = await checkAdminStatus(session.user.id);
             setIsAdmin(adminStatus);
+            setLoading(false); // Only set loading false after admin check
           }, 0);
         } else {
           setIsAdmin(false);
+          setLoading(false); // Set loading false when no user
         }
-        
-        setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminStatus(session.user.id).then(setIsAdmin);
+        const adminStatus = await checkAdminStatus(session.user.id);
+        setIsAdmin(adminStatus);
       }
       setLoading(false);
     });
