@@ -367,8 +367,8 @@ const Admin = () => {
     );
   }
 
-  // Access denied
-  if (user && !isAdmin) {
+  // Access denied - only show when auth is complete and user is not admin
+  if (user && !authLoading && !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
