@@ -410,7 +410,7 @@ const Admin = () => {
 
       if (result.success && result.uploaded.length > 0) {
         // Add successful uploads to images
-        const newImageUrls = result.uploaded.map((upload: any) => upload.url);
+        const newImageUrls = result.uploaded.map((upload: { url: string }) => upload.url);
 
         setFormData((prev) => ({
           ...prev,
@@ -485,51 +485,51 @@ const Admin = () => {
   // Login Form
   if (!user || !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="container mx-auto px-4 py-20">
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Admin Login</CardTitle>
-                <CardDescription>
-                  Enter your admin credentials to access the admin panel
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin} className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl sm:text-2xl">Admin Login</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                Enter your admin credentials to access the admin panel
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="text-sm sm:text-base"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="text-sm sm:text-base"
+                  />
+                </div>
+                {loginError && (
+                  <div className="text-red-500 text-xs sm:text-sm flex items-center space-x-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{loginError}</span>
                   </div>
-                  <div>
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  {loginError && (
-                    <div className="text-red-500 text-sm flex items-center space-x-2">
-                      <AlertCircle className="h-4 w-4" />
-                      <span>{loginError}</span>
-                    </div>
-                  )}
-                  <Button type="submit" className="w-full">
-                    Login
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+                )}
+                <Button type="submit" className="w-full text-sm sm:text-base">
+                  Login
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -540,112 +540,35 @@ const Admin = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Manage your products and store
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <Badge variant="secondary">Welcome, Admin</Badge>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+          <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+            <Badge variant="secondary" className="text-xs sm:text-sm">Welcome, Admin</Badge>
+            <Button variant="outline" onClick={handleLogout} size="sm" className="text-xs sm:text-sm">
+              <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="inline">Logout</span>
             </Button>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Package className="h-8 w-8 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total Products
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {isLoadingStats ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    ) : (
-                      stats.totalProducts
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="h-8 w-8 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Active Products
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {isLoadingStats ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    ) : (
-                      stats.activeProducts
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Users className="h-8 w-8 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Categories
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {isLoadingStats ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    ) : (
-                      stats.categories
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Settings className="h-8 w-8 text-orange-500" />
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    New Products
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {isLoadingStats ? (
-                      <Loader2 className="h-6 w-6 animate-spin" />
-                    ) : (
-                      stats.newProducts
-                    )}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
+        {/* Order Stats */}
+        <AdminOrderStats />
 
         {/* Helpful Info Card */}
         <Card className="mb-6 border-blue-200 bg-blue-50/10">
-          <CardContent className="p-6">
-            <div className="flex items-start space-x-3">
-              <div className="text-blue-500 mt-1">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-start space-x-2 sm:space-x-3">
+              <div className="text-blue-500 mt-1 flex-shrink-0">
                 <svg
-                  className="w-5 h-5"
+                  className="w-4 h-4 sm:w-5 sm:h-5"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -656,28 +579,28 @@ const Admin = () => {
                   />
                 </svg>
               </div>
-              <div>
-                <h3 className="font-semibold text-blue-900 mb-2">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">
                   How to Edit Products
                 </h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>
+                <ul className="text-xs sm:text-sm text-blue-800 space-y-1">
+                  <li className="break-words">
                     • <strong>View Products:</strong> All your products are
                     listed in the table below
                   </li>
-                  <li>
+                  <li className="break-words">
                     • <strong>Edit Product:</strong> Click the ✏️ (edit) button
                     next to any product
                   </li>
-                  <li>
+                  <li className="break-words">
                     • <strong>Update Details:</strong> Modify name, price,
                     description, stock, features, etc.
                   </li>
-                  <li>
+                  <li className="break-words">
                     • <strong>Save Changes:</strong> Click "Save Changes" to
                     update the product
                   </li>
-                  <li>
+                  <li className="break-words">
                     • <strong>Active/Inactive:</strong> Toggle product
                     visibility on your website
                   </li>
@@ -687,12 +610,10 @@ const Admin = () => {
           </CardContent>
         </Card>
 
-        {/* Order Stats */}
-        <AdminOrderStats />
 
         {/* Main Content */}
         <Tabs defaultValue="products" className="space-y-6">
-          <TabsList>
+        <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -701,8 +622,8 @@ const Admin = () => {
 
           <TabsContent value="products" className="space-y-6">
             {/* Add Product Button */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Product Management</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold">Product Management</h2>
               <Dialog
                 open={isAddDialogOpen}
                 onOpenChange={(open) => {
@@ -711,10 +632,9 @@ const Admin = () => {
                 }}
               >
                 <DialogTrigger asChild>
-                  <Button>
+                <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
+                    Add Product</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
@@ -725,7 +645,7 @@ const Admin = () => {
                   </DialogHeader>
 
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="name">Product Name</Label>
                         <Input
@@ -768,7 +688,7 @@ const Admin = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
                         <Label htmlFor="price">Price (₹)</Label>
                         <Input
@@ -951,13 +871,13 @@ const Admin = () => {
                       {imagePreviews.length > 0 && (
                         <div className="space-y-2">
                           <Label>Image Previews</Label>
-                          <div className="grid grid-cols-3 gap-4">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                             {imagePreviews.map((preview, index) => (
                               <div key={index} className="relative">
                                 <img
                                   src={preview}
                                   alt={`Product preview ${index + 1}`}
-                                  className="w-full h-32 object-cover rounded-lg border"
+                                  className="w-full h-24 sm:h-32 object-cover rounded-lg border"
                                   onError={(e) => {
                                     e.currentTarget.src =
                                       "/src/assets/robot-toy-premium.jpg";
@@ -1102,6 +1022,89 @@ const Admin = () => {
               </Dialog>
             </div>
 
+            {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+          <Card>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center space-x-2">
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Total Products
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold">
+                    {isLoadingStats ? (
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    ) : (
+                      stats.totalProducts
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-green-500" />
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Active Products
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold">
+                    {isLoadingStats ? (
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    ) : (
+                      stats.activeProducts
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center space-x-2">
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500" />
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Categories
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold">
+                    {isLoadingStats ? (
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    ) : (
+                      stats.categories
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center space-x-2">
+                <Settings className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500" />
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    New Products
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold">
+                    {isLoadingStats ? (
+                      <Loader2 className="h-4 w-4 sm:h-6 sm:w-6 animate-spin" />
+                    ) : (
+                      stats.newProducts
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
             {/* Products Table */}
             <Card>
               <CardHeader>
@@ -1130,116 +1133,204 @@ const Admin = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-4">Product</th>
-                          <th className="text-left p-4">Category</th>
-                          <th className="text-left p-4">Price</th>
-                          <th className="text-left p-4">Stock</th>
-                          <th className="text-left p-4">Status</th>
-                          <th className="text-left p-4">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {products.map((product) => (
-                          <tr
-                            key={product.id}
-                            className="border-b hover:bg-muted/50"
-                          >
-                            <td className="p-4">
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={
-                                    Array.isArray(product.image)
-                                      ? product.image[0]
-                                      : product.image
-                                  }
-                                  alt={product.name}
-                                  className="w-12 h-12 object-cover rounded"
-                                />
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-4">Product</th>
+                            <th className="text-left p-4">Category</th>
+                            <th className="text-left p-4">Price</th>
+                            <th className="text-left p-4">Stock</th>
+                            <th className="text-left p-4">Status</th>
+                            <th className="text-left p-4">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {products.map((product) => (
+                            <tr
+                              key={product.id}
+                              className="border-b hover:bg-muted/50"
+                            >
+                              <td className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <img
+                                    src={
+                                      Array.isArray(product.image)
+                                        ? product.image[0]
+                                        : product.image
+                                    }
+                                    alt={product.name}
+                                    className="w-12 h-12 object-cover rounded"
+                                  />
+                                  <div>
+                                    <p className="font-medium">{product.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {product.is_new && (
+                                        <Badge
+                                          variant="secondary"
+                                          className="mr-1"
+                                        >
+                                          New
+                                        </Badge>
+                                      )}
+                                      Rating: {product.rating}/5 (
+                                      {product.reviews} reviews)
+                                    </p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="p-4">{product.category}</td>
+                              <td className="p-4">
                                 <div>
-                                  <p className="font-medium">{product.name}</p>
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="font-medium">
+                                    {formatPrice(product.price)}
+                                  </p>
+                                  {product.original_price && (
+                                    <p className="text-sm text-muted-foreground line-through">
+                                      {formatPrice(product.original_price)}
+                                    </p>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-medium">
+                                    {product.stock}
+                                  </span>
+                                  {product.stock < 10 && (
+                                    <Badge
+                                      variant="destructive"
+                                      className="text-xs"
+                                    >
+                                      Low Stock
+                                    </Badge>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <Badge
+                                  variant={
+                                    product.is_active ? "default" : "secondary"
+                                  }
+                                >
+                                  {product.is_active ? "Active" : "Inactive"}
+                                </Badge>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openEditDialog(product)}
+                                    title="Edit Product"
+                                    className="text-zinc-500"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openDeleteDialog(product)}
+                                    title="Delete Product"
+                                    className="text-zinc-500"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="lg:hidden space-y-4 p-4">
+                      {products.map((product) => (
+                        <Card key={product.id} className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <img
+                              src={
+                                Array.isArray(product.image)
+                                  ? product.image[0]
+                                  : product.image
+                              }
+                              alt={product.name}
+                              className="w-16 h-16 object-cover rounded flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-medium text-sm truncate">{product.name}</h3>
+                                  <p className="text-xs text-muted-foreground">{product.category}</p>
+                                  <div className="flex items-center space-x-2 mt-1">
                                     {product.is_new && (
-                                      <Badge
-                                        variant="secondary"
-                                        className="mr-1"
-                                      >
+                                      <Badge variant="secondary" className="text-xs">
                                         New
                                       </Badge>
                                     )}
-                                    Rating: {product.rating}/5 (
-                                    {product.reviews} reviews)
-                                  </p>
+                                    <Badge
+                                      variant={product.is_active ? "default" : "secondary"}
+                                      className="text-xs"
+                                    >
+                                      {product.is_active ? "Active" : "Inactive"}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-1">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openEditDialog(product)}
+                                    title="Edit Product"
+                                    className="h-8 w-8 text-zinc-500"
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => openDeleteDialog(product)}
+                                    title="Delete Product"
+                                    className="h-8 w-8 text-zinc-500"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 </div>
                               </div>
-                            </td>
-                            <td className="p-4">{product.category}</td>
-                            <td className="p-4">
-                              <div>
-                                <p className="font-medium">
-                                  {formatPrice(product.price)}
-                                </p>
+                              <div className="mt-2 space-y-1">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm font-medium">
+                                    {formatPrice(product.price)}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    Stock: {product.stock}
+                                  </span>
+                                </div>
                                 {product.original_price && (
-                                  <p className="text-sm text-muted-foreground line-through">
+                                  <p className="text-xs text-muted-foreground line-through">
                                     {formatPrice(product.original_price)}
                                   </p>
                                 )}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground">
+                                    Rating: {product.rating}/5 ({product.reviews} reviews)
+                                  </span>
+                                  {product.stock < 10 && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      Low Stock
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium">
-                                  {product.stock}
-                                </span>
-                                {product.stock < 10 && (
-                                  <Badge
-                                    variant="destructive"
-                                    className="text-xs"
-                                  >
-                                    Low Stock
-                                  </Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <Badge
-                                variant={
-                                  product.is_active ? "default" : "secondary"
-                                }
-                              >
-                                {product.is_active ? "Active" : "Inactive"}
-                              </Badge>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => openEditDialog(product)}
-                                  title="Edit Product"
-                                  className="text-zinc-500"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => openDeleteDialog(product)}
-                                  title="Delete Product"
-                                  className="text-zinc-500"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -1290,7 +1381,7 @@ const Admin = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-name">Product Name</Label>
                 <Input
@@ -1331,7 +1422,7 @@ const Admin = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="edit-price">Price (₹)</Label>
                 <Input
@@ -1501,13 +1592,13 @@ const Admin = () => {
               {imagePreviews.length > 0 && (
                 <div className="space-y-2">
                   <Label>Image Previews</Label>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
                         <img
                           src={preview}
                           alt={`Product preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border"
+                          className="w-full h-24 sm:h-32 object-cover rounded-lg border"
                           onError={(e) => {
                             e.currentTarget.src =
                               "/src/assets/robot-toy-premium.jpg";
