@@ -58,8 +58,11 @@ serve(async (req) => {
 
     console.log("Verifying payment for order:", razorpay_order_id);
 
-    // Verify payment signature
-    const razorpayKeySecret = "2y94H39svSWUNakdAaEJaUD6";
+    // Verify payment signature using secret from Supabase Edge Function secrets
+    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET") ?? "";
+    if (!razorpayKeySecret) {
+      throw new Error("Razorpay secret not configured");
+    }
 
     // Create signature
     const bodyString = razorpay_order_id + "|" + razorpay_payment_id;

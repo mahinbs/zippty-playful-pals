@@ -157,11 +157,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       }
 
       console.log('Order created successfully:', order.id);
+      const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const keyId = isHttps ? 'rzp_live_njbHEskL8XD0qSDRlYMN' : 'rzp_test_iVetw1LEDRlYMN';
       return {
         orderId: null, // No Razorpay order ID for now
         amount: Math.round(finalAmount * 100),
         currency: 'INR',
-        keyId: 'rzp_live_njbHEskL8XD0qSDRlYMN',
+        keyId,
         orderDbId: order.id,
       };
     } catch (error) {
