@@ -211,24 +211,52 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       const checkPaymentStatus = setInterval(async () => {
         if (paymentWindow.closed) {
           clearInterval(checkPaymentStatus);
-          setLoading(false);
-
+          
+          // Add a small delay to ensure sessionStorage is updated
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
           // Check if payment was successful
           const paymentSuccess = sessionStorage.getItem('paymentSuccess');
           const paymentOrderId = sessionStorage.getItem('paymentOrderId');
           const razorpayPaymentId = sessionStorage.getItem('razorpayPaymentId');
           const razorpayOrderId = sessionStorage.getItem('razorpayOrderId');
 
+          console.log('Payment window closed. Status:', {
+            paymentSuccess,
+            paymentOrderId,
+            razorpayPaymentId,
+            razorpayOrderId
+          });
+
           if (paymentSuccess === 'true' && paymentOrderId && razorpayPaymentId && razorpayOrderId) {
-            // Update order with payment details
-            await supabase
-              .from('orders')
-              .update({
-                razorpay_order_id: razorpayOrderId,
-                razorpay_payment_id: razorpayPaymentId,
-                status: 'paid',
-              })
-              .eq('id', paymentOrderId);
+            try {
+              // Update order with payment details
+              const { error: updateError } = await supabase
+                .from('orders')
+                .update({
+                  razorpay_order_id: razorpayOrderId,
+                  razorpay_payment_id: razorpayPaymentId,
+                  status: 'paid',
+                })
+                .eq('id', paymentOrderId);
+
+              if (updateError) {
+                console.error('Error updating order:', updateError);
+                toast.error('Payment completed but order update failed. Please contact support.');
+              } else {
+                console.log('Order updated successfully');
+                // Success
+                clearCart();
+                setSuccessOrderId(paymentOrderId);
+                setShowOrderSuccess(true);
+                onClose();
+                toast.success('Payment completed successfully!');
+              }
+            } catch (error) {
+              console.error('Error processing payment success:', error);
+              toast.error('Payment completed but order update failed. Please contact support.');
+            }
+
             // Clear session storage
             sessionStorage.removeItem('paymentSuccess');
             sessionStorage.removeItem('paymentOrderId');
@@ -236,20 +264,20 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
             sessionStorage.removeItem('razorpayOrderId');
             sessionStorage.removeItem('pendingOrderData');
 
-            // Success
-            clearCart();
-            setSuccessOrderId(paymentOrderId);
-            setShowOrderSuccess(true);
-            onClose();
-            
             // Regenerate idempotency key for next order
             idempotencyKeyRef.current =
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
                 ? crypto.randomUUID()
                 : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
           } else {
+            console.log('Payment was cancelled or failed');
             // Payment was cancelled or failed
             sessionStorage.removeItem('pendingOrderData');
+            sessionStorage.removeItem('paymentSuccess');
+            sessionStorage.removeItem('paymentOrderId');
+            sessionStorage.removeItem('razorpayPaymentId');
+            sessionStorage.removeItem('razorpayOrderId');
+            
             // Regenerate key on cancel to avoid stale key reuse
             idempotencyKeyRef.current =
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -257,8 +285,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 : `idemp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
             toast.info('Payment was cancelled or failed');
           }
+          
+          setLoading(false);
         }
-      }, 1000);
+      }, 500); // Check every 500ms instead of 1000ms for faster response
 
       // Set timeout to close payment window after 10 minutes
       setTimeout(() => {

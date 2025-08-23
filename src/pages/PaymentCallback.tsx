@@ -27,12 +27,18 @@ const PaymentPage: React.FC = () => {
             ...paymentData,
             handler: async (response: any) => {
               try {
+                console.log('Payment successful:', response);
+                
                 // Set success flags for parent window
                 sessionStorage.setItem('paymentSuccess', 'true');
                 sessionStorage.setItem('paymentOrderId', paymentData.orderDbId);
                 sessionStorage.setItem('razorpayPaymentId', response.razorpay_payment_id);
                 sessionStorage.setItem('razorpayOrderId', response.razorpay_order_id);
                 
+                // Small delay to ensure sessionStorage is set
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                console.log('Session storage set, closing window');
                 // Close this payment window
                 window.close();
               } catch (error) {
@@ -43,8 +49,9 @@ const PaymentPage: React.FC = () => {
             },
             modal: {
               ondismiss: () => {
+                console.log('Payment dismissed by user');
                 sessionStorage.setItem('paymentSuccess', 'false');
-                window.close();
+                setTimeout(() => window.close(), 100);
               }
             }
           });
