@@ -108,8 +108,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     return true;
   };
 
-  // Create payment URL for new tab
-  const createPaymentUrl = (orderData: any, finalAmount: number) => {
+  // Create payment page URL with data
+  const createPaymentPageUrl = (orderData: any) => {
     const paymentData = {
       key: orderData.keyId,
       amount: orderData.amount,
@@ -124,24 +124,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       theme: {
         color: '#6366f1',
       },
-      callback_url: `${window.location.origin}/payment-callback`,
-      redirect: true,
-      modal: {
-        escape: false,
-        backdrop_close: false
-      }
+      orderDbId: orderData.orderDbId
     };
     
-    const params = new URLSearchParams();
-    Object.entries(paymentData).forEach(([key, value]) => {
-      if (typeof value === 'object') {
-        params.append(key, JSON.stringify(value));
-      } else {
-        params.append(key, String(value));
-      }
-    });
-    
-    return `https://checkout.razorpay.com/v1/checkout.html?${params.toString()}`;
+    const encodedData = encodeURIComponent(JSON.stringify(paymentData));
+    return `/payment-callback?data=${encodedData}`;
   };
 
   // Create order in database (simplified approach)
@@ -208,11 +195,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         items: items.length
       }));
 
-      // Create payment URL
-      const paymentUrl = createPaymentUrl(orderData, finalAmount);
+      // Create payment page URL
+      const paymentPageUrl = createPaymentPageUrl(orderData);
 
       // Open payment in new tab
-      const paymentWindow = window.open(paymentUrl, 'razorpay-payment', 'width=800,height=600,scrollbars=yes,resizable=yes');
+      const paymentWindow = window.open(paymentPageUrl, 'razorpay-payment', 'width=800,height=600,scrollbars=yes,resizable=yes');
 
       if (!paymentWindow) {
         toast.error('Please allow popups for payment processing');
@@ -229,11 +216,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           // Check if payment was successful
           const paymentSuccess = sessionStorage.getItem('paymentSuccess');
           const paymentOrderId = sessionStorage.getItem('paymentOrderId');
+          const razorpayPaymentId = sessionStorage.getItem('razorpayPaymentId');
+          const razorpayOrderId = sessionStorage.getItem('razorpayOrderId');
 
-          if (paymentSuccess === 'true' && paymentOrderId) {
+          if (paymentSuccess === 'true' && paymentOrderId && razorpayPaymentId && razorpayOrderId) {
+            // Update order with payment details
+            await supabase
+              .from('orders')
+              .update({
+                razorpay_order_id: razorpayOrderId,
+                razorpay_payment_id: razorpayPaymentId,
+                status: 'paid',
+              })
+              .eq('id', paymentOrderId);
             // Clear session storage
             sessionStorage.removeItem('paymentSuccess');
             sessionStorage.removeItem('paymentOrderId');
+            sessionStorage.removeItem('razorpayPaymentId');
+            sessionStorage.removeItem('razorpayOrderId');
             sessionStorage.removeItem('pendingOrderData');
 
             // Success

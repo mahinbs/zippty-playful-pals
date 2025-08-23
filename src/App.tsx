@@ -103,7 +103,7 @@ const Shipping = React.lazy(() => import("./pages/Shipping"));
 const Returns = React.lazy(() => import("./pages/Returns"));
 const Warranty = React.lazy(() => import("./pages/Warranty"));
 const Orders = React.lazy(() => import("./pages/Orders"));
-const PaymentCallback = React.lazy(() => import("./pages/PaymentCallback"));
+const PaymentPage = React.lazy(() => import("./pages/PaymentCallback"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -134,7 +134,7 @@ const App = () => {
                     <Route path="/warranty" element={<Warranty />} />
                     <Route path="/orders" element={<Orders />} />
                     <Route path="/orders/:orderId" element={<Orders />} />
-                    <Route path="/payment-callback" element={<PaymentCallback />} />
+                    <Route path="/payment-callback" element={<PaymentPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

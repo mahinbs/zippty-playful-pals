@@ -1,60 +1,84 @@
 import React, { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
-const PaymentCallback: React.FC = () => {
+const PaymentPage: React.FC = () => {
   useEffect(() => {
-    const handlePaymentCallback = async () => {
+    const loadRazorpayAndPay = async () => {
       try {
+        // Get payment data from URL params
         const urlParams = new URLSearchParams(window.location.search);
-        const razorpayPaymentId = urlParams.get('razorpay_payment_id');
-        const razorpayOrderId = urlParams.get('razorpay_order_id');
-        const razorpaySignature = urlParams.get('razorpay_signature');
-
-        const pendingOrderData = sessionStorage.getItem('pendingOrderData');
+        const paymentDataStr = urlParams.get('data');
         
-        if (razorpayPaymentId && razorpayOrderId && pendingOrderData) {
-          const orderData = JSON.parse(pendingOrderData);
-          
-          // Update order status in database
-          await supabase
-            .from('orders')
-            .update({
-              razorpay_order_id: razorpayOrderId,
-              razorpay_payment_id: razorpayPaymentId,
-              status: 'paid',
-            })
-            .eq('id', orderData.orderDbId);
-
-          // Set success flags for parent window
-          sessionStorage.setItem('paymentSuccess', 'true');
-          sessionStorage.setItem('paymentOrderId', orderData.orderDbId);
-          
-          // Close this payment window
+        if (!paymentDataStr) {
+          console.error('No payment data found');
           window.close();
-        } else {
-          // Payment failed or cancelled
+          return;
+        }
+
+        const paymentData = JSON.parse(decodeURIComponent(paymentDataStr));
+
+        // Load Razorpay script
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        
+        script.onload = () => {
+          // Initialize Razorpay payment
+          const rzp = new window.Razorpay({
+            ...paymentData,
+            handler: async (response: any) => {
+              try {
+                // Set success flags for parent window
+                sessionStorage.setItem('paymentSuccess', 'true');
+                sessionStorage.setItem('paymentOrderId', paymentData.orderDbId);
+                sessionStorage.setItem('razorpayPaymentId', response.razorpay_payment_id);
+                sessionStorage.setItem('razorpayOrderId', response.razorpay_order_id);
+                
+                // Close this payment window
+                window.close();
+              } catch (error) {
+                console.error('Payment success handling failed:', error);
+                sessionStorage.setItem('paymentSuccess', 'false');
+                window.close();
+              }
+            },
+            modal: {
+              ondismiss: () => {
+                sessionStorage.setItem('paymentSuccess', 'false');
+                window.close();
+              }
+            }
+          });
+          
+          // Open payment modal
+          rzp.open();
+        };
+
+        script.onerror = () => {
+          console.error('Failed to load Razorpay script');
           sessionStorage.setItem('paymentSuccess', 'false');
           window.close();
-        }
+        };
+
+        document.body.appendChild(script);
       } catch (error) {
-        console.error('Payment callback error:', error);
+        console.error('Payment initialization failed:', error);
         sessionStorage.setItem('paymentSuccess', 'false');
         window.close();
       }
     };
 
-    handlePaymentCallback();
+    loadRazorpayAndPay();
   }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-        <p className="text-muted-foreground">Processing your payment...</p>
-        <p className="text-sm text-muted-foreground">This window will close automatically.</p>
+        <p className="text-muted-foreground">Loading payment gateway...</p>
+        <p className="text-sm text-muted-foreground">Please wait while we initialize your payment.</p>
       </div>
     </div>
   );
 };
 
-export default PaymentCallback;
+export default PaymentPage;
