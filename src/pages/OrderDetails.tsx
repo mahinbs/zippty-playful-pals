@@ -4,17 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Package, Truck, MapPin, Phone, User } from 'lucide-react';
+import { CheckCircle, Package, Truck, MapPin, Phone, User, Star, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface OrderItem {
+interface Product {
   id: string;
   name: string;
   price: number;
-  quantity: number;
+  originalPrice?: number;
   image: string;
+  images?: string[];
+  category: string;
+  description?: string;
+  features?: string[];
+  rating?: number;
+  reviews?: number;
+}
+
+interface OrderItem {
+  product: Product;
+  quantity: number;
 }
 
 interface DeliveryAddress {
@@ -151,28 +162,89 @@ const OrderDetails: React.FC = () => {
                 <Package className="h-5 w-5 mr-2" />
                 Items Ordered
               </h3>
-              <div className="space-y-3">
-                {order.items.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center space-x-4 p-3 bg-muted/50 rounded-lg">
-                    <img
-                      src={item.image || '/placeholder.svg'}
-                      alt={item.name || 'Product'}
-                      className="w-16 h-16 object-cover rounded"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="flex-1">
-                      <h4 className="font-medium">{item.name || 'Product'}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Quantity: {item.quantity || 1}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-6">
+                {order.items.map((item: OrderItem, index: number) => {
+                  const { product } = item;
+                  return (
+                    <Card key={index} className="border border-border/50">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col lg:flex-row gap-6">
+                          {/* Product Image */}
+                          <div className="flex-shrink-0">
+                            <img
+                              src={product.image || '/placeholder.svg'}
+                              alt={product.name}
+                              className="w-32 h-32 lg:w-40 lg:h-40 object-cover rounded-lg"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/placeholder.svg';
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Product Details */}
+                          <div className="flex-1 space-y-4">
+                            {/* Product Name and Category */}
+                            <div className="space-y-2">
+                              <h4 className="text-xl font-semibold">{product.name}</h4>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="flex items-center gap-1">
+                                  <Tag className="h-3 w-3" />
+                                  {product.category}
+                                </Badge>
+                                {product.rating && (
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                    <span>{product.rating}</span>
+                                    {product.reviews && <span>({product.reviews} reviews)</span>}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Product Features */}
+                            {product.features && product.features.length > 0 && (
+                              <div className="space-y-2">
+                                <h5 className="font-medium text-sm">Key Features:</h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+                                  {product.features.slice(0, 4).map((feature, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                                      <span>{feature}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Pricing and Quantity */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl font-bold text-primary">₹{product.price.toLocaleString()}</span>
+                                  {product.originalPrice && product.originalPrice > product.price && (
+                                    <>
+                                      <span className="text-lg text-muted-foreground line-through">₹{product.originalPrice.toLocaleString()}</span>
+                                      <Badge variant="destructive" className="text-xs">
+                                        {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
+                                      </Badge>
+                                    </>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground">Price per item</p>
+                              </div>
+                              
+                              <div className="text-right">
+                                <div className="text-sm text-muted-foreground">Quantity: {item.quantity}</div>
+                                <div className="text-xl font-bold">₹{(product.price * item.quantity).toLocaleString()}</div>
+                                <div className="text-sm text-muted-foreground">Total</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
 
