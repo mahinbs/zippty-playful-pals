@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { CheckCircle, Package, Truck, MapPin, Phone, User, Star, Tag } from 'lucide-react';
+import { ArrowLeft, Package2, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -15,12 +13,7 @@ interface Product {
   price: number;
   originalPrice?: number;
   image: string;
-  images?: string[];
   category: string;
-  description?: string;
-  features?: string[];
-  rating?: number;
-  reviews?: number;
 }
 
 interface OrderItem {
@@ -45,7 +38,6 @@ interface Order {
   status: string;
   created_at: string;
   razorpay_payment_id?: string;
-  razorpay_order_id?: string;
 }
 
 const OrderDetails: React.FC = () => {
@@ -100,7 +92,7 @@ const OrderDetails: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -109,208 +101,169 @@ const OrderDetails: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Order not found</h2>
+          <h2 className="text-xl font-semibold mb-4">Order not found</h2>
           <Button onClick={() => navigate('/')}>Go to Home</Button>
         </div>
       </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
+    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
     switch (status) {
       case 'paid':
-        return 'bg-green-100 text-green-800';
+        return <Badge className="bg-green-100 text-green-800">{statusText}</Badge>;
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return <Badge className="bg-yellow-100 text-yellow-800">{statusText}</Badge>;
       case 'shipped':
-        return 'bg-blue-100 text-blue-800';
+        return <Badge className="bg-blue-100 text-blue-800">{statusText}</Badge>;
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return <Badge className="bg-green-100 text-green-800">{statusText}</Badge>;
       default:
-        return 'bg-gray-100 text-gray-800';
+        return <Badge variant="secondary">{statusText}</Badge>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-2">
-            <CheckCircle className="h-8 w-8 text-green-500" />
-            <h1 className="text-3xl font-bold">Order Confirmed!</h1>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b bg-white">
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/orders')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Your Orders
+            </Button>
           </div>
-          <p className="text-muted-foreground">
-            Thank you for your order. We'll send you a confirmation email shortly.
-          </p>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Order Header */}
+        <div className="mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-normal mb-2">
+                Order #{order.id.slice(-8).toUpperCase()}
+              </h1>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>Order placed {new Date(order.created_at).toLocaleDateString('en-IN', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}</span>
+                <span>Total ₹{(order.amount / 100).toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {getStatusBadge(order.status)}
+            </div>
+          </div>
         </div>
 
-        {/* Order Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Order #{order.id.slice(-8).toUpperCase()}</span>
-              <Badge className={getStatusColor(order.status)}>
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Order Items */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center">
-                <Package className="h-5 w-5 mr-2" />
-                Items Ordered
-              </h3>
-              <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Order Items */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white border rounded-lg">
+              <div className="p-4 border-b">
+                <h2 className="font-medium flex items-center gap-2">
+                  <Package2 className="h-4 w-4" />
+                  {order.status === 'delivered' ? 'Delivered' : 'Not yet shipped'}
+                </h2>
+              </div>
+              
+              <div className="p-4 space-y-4">
                 {order.items.map((item: OrderItem, index: number) => {
                   const { product } = item;
                   return (
-                    <Card key={index} className="border border-border/50">
-                      <CardContent className="p-6">
-                        <div className="flex flex-col lg:flex-row gap-6">
-                          {/* Product Image */}
-                          <div className="flex-shrink-0">
-                            <img
-                              src={product.image || '/placeholder.svg'}
-                              alt={product.name}
-                              className="w-32 h-32 lg:w-40 lg:h-40 object-cover rounded-lg"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/placeholder.svg';
-                              }}
-                            />
-                          </div>
-                          
-                          {/* Product Details */}
-                          <div className="flex-1 space-y-4">
-                            {/* Product Name and Category */}
-                            <div className="space-y-2">
-                              <h4 className="text-xl font-semibold">{product.name}</h4>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="secondary" className="flex items-center gap-1">
-                                  <Tag className="h-3 w-3" />
-                                  {product.category}
-                                </Badge>
-                                {product.rating && (
-                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                    <span>{product.rating}</span>
-                                    {product.reviews && <span>({product.reviews} reviews)</span>}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Product Features */}
-                            {product.features && product.features.length > 0 && (
-                              <div className="space-y-2">
-                                <h5 className="font-medium text-sm">Key Features:</h5>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                                  {product.features.slice(0, 4).map((feature, idx) => (
-                                    <div key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                                      <span>{feature}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
+                    <div key={index} className="flex gap-4 pb-4 border-b last:border-b-0 last:pb-0">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={product.image || '/placeholder.svg'}
+                          alt={product.name}
+                          className="w-20 h-20 object-cover rounded"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-sm mb-1 leading-tight">
+                          {product.name}
+                        </h3>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3 text-sm">
+                            <span className="font-medium">₹{product.price.toLocaleString()}</span>
+                            {product.originalPrice && product.originalPrice > product.price && (
+                              <span className="text-muted-foreground line-through">₹{product.originalPrice.toLocaleString()}</span>
                             )}
-
-                            {/* Pricing and Quantity */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t">
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-2xl font-bold text-primary">₹{product.price.toLocaleString()}</span>
-                                  {product.originalPrice && product.originalPrice > product.price && (
-                                    <>
-                                      <span className="text-lg text-muted-foreground line-through">₹{product.originalPrice.toLocaleString()}</span>
-                                      <Badge variant="destructive" className="text-xs">
-                                        {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                                      </Badge>
-                                    </>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground">Price per item</p>
-                              </div>
-                              
-                              <div className="text-right">
-                                <div className="text-sm text-muted-foreground">Quantity: {item.quantity}</div>
-                                <div className="text-xl font-bold">₹{(product.price * item.quantity).toLocaleString()}</div>
-                                <div className="text-sm text-muted-foreground">Total</div>
-                              </div>
-                            </div>
                           </div>
+                          <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <Button size="sm" variant="outline" onClick={() => navigate('/shop')}>
+                          Buy it again
+                        </Button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
             </div>
+          </div>
 
-            <Separator />
+          {/* Right Column - Order Summary */}
+          <div className="space-y-4">
+            {/* Order Summary */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-medium mb-3">Order Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Items</span>
+                  <span>₹{(order.amount / 100).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery</span>
+                  <span className="text-green-600">FREE</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between font-medium">
+                  <span>Order Total</span>
+                  <span>₹{(order.amount / 100).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
 
-            {/* Delivery Address */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Delivery Address
+            {/* Shipping Address */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-medium mb-3 flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Shipping Address
               </h3>
-              <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span className="font-medium">{order.delivery_address?.fullName || 'Not provided'}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4" />
-                  <span>{order.delivery_address?.phone || 'Not provided'}</span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <MapPin className="h-4 w-4 mt-1" />
-                  <div>
-                    <p>{order.delivery_address?.address || 'Address not provided'}</p>
-                    <p>{order.delivery_address?.city || ''}{order.delivery_address?.city && order.delivery_address?.state ? ', ' : ''}{order.delivery_address?.state || ''}{order.delivery_address?.pincode ? ` - ${order.delivery_address.pincode}` : ''}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Order Total */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total Amount Paid</span>
-                <span>₹{(order.amount / 100).toLocaleString()}</span>
-              </div>
-              {order.razorpay_payment_id && (
-                <p className="text-sm text-muted-foreground">
-                  Payment ID: {order.razorpay_payment_id}
+              <div className="text-sm space-y-1">
+                <p className="font-medium">{order.delivery_address?.fullName}</p>
+                <p>{order.delivery_address?.address}</p>
+                <p>
+                  {order.delivery_address?.city}, {order.delivery_address?.state} {order.delivery_address?.pincode}
                 </p>
-              )}
+                <p>Phone: {order.delivery_address?.phone}</p>
+              </div>
             </div>
 
-            {/* Order Date */}
-            <div className="text-sm text-muted-foreground">
-              <p>Order placed on {new Date(order.created_at).toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={() => navigate('/shop')} variant="outline">
-            Continue Shopping
-          </Button>
-          <Button onClick={() => navigate('/orders')}>
-            View All Orders
-          </Button>
+            {/* Payment Information */}
+            {order.razorpay_payment_id && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="font-medium mb-3">Payment Information</h3>
+                <div className="text-sm space-y-1">
+                  <p>Payment Method: Online Payment</p>
+                  <p className="text-muted-foreground">Payment ID: {order.razorpay_payment_id}</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
