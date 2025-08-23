@@ -189,11 +189,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
       const orderData = await createOrder(finalAmount);
 
       // Store order data for callback handling
-      sessionStorage.setItem('pendingOrderData', JSON.stringify({
+      localStorage.setItem('pendingOrderData', JSON.stringify({
         orderDbId: orderData.orderDbId,
         finalAmount,
         items: items.length
       }));
+      
+      // Clear any previous payment status
+      localStorage.removeItem('paymentSuccess');
+      localStorage.removeItem('paymentOrderId');
+      localStorage.removeItem('razorpayPaymentId');
+      localStorage.removeItem('razorpayOrderId');
+      localStorage.removeItem('paymentTimestamp');
 
       // Create payment page URL
       const paymentPageUrl = createPaymentPageUrl(orderData);
@@ -212,14 +219,14 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
         if (paymentWindow.closed) {
           clearInterval(checkPaymentStatus);
           
-          // Add a small delay to ensure sessionStorage is updated
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Add a small delay to ensure localStorage is updated
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Check if payment was successful
-          const paymentSuccess = sessionStorage.getItem('paymentSuccess');
-          const paymentOrderId = sessionStorage.getItem('paymentOrderId');
-          const razorpayPaymentId = sessionStorage.getItem('razorpayPaymentId');
-          const razorpayOrderId = sessionStorage.getItem('razorpayOrderId');
+          const paymentSuccess = localStorage.getItem('paymentSuccess');
+          const paymentOrderId = localStorage.getItem('paymentOrderId');
+          const razorpayPaymentId = localStorage.getItem('razorpayPaymentId');
+          const razorpayOrderId = localStorage.getItem('razorpayOrderId');
 
           console.log('Payment window closed. Status:', {
             paymentSuccess,
@@ -257,12 +264,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
               toast.error('Payment completed but order update failed. Please contact support.');
             }
 
-            // Clear session storage
-            sessionStorage.removeItem('paymentSuccess');
-            sessionStorage.removeItem('paymentOrderId');
-            sessionStorage.removeItem('razorpayPaymentId');
-            sessionStorage.removeItem('razorpayOrderId');
-            sessionStorage.removeItem('pendingOrderData');
+            // Clear localStorage
+            localStorage.removeItem('paymentSuccess');
+            localStorage.removeItem('paymentOrderId');
+            localStorage.removeItem('razorpayPaymentId');
+            localStorage.removeItem('razorpayOrderId');
+            localStorage.removeItem('paymentTimestamp');
+            localStorage.removeItem('pendingOrderData');
 
             // Regenerate idempotency key for next order
             idempotencyKeyRef.current =
@@ -272,11 +280,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           } else {
             console.log('Payment was cancelled or failed');
             // Payment was cancelled or failed
-            sessionStorage.removeItem('pendingOrderData');
-            sessionStorage.removeItem('paymentSuccess');
-            sessionStorage.removeItem('paymentOrderId');
-            sessionStorage.removeItem('razorpayPaymentId');
-            sessionStorage.removeItem('razorpayOrderId');
+            localStorage.removeItem('pendingOrderData');
+            localStorage.removeItem('paymentSuccess');
+            localStorage.removeItem('paymentOrderId');
+            localStorage.removeItem('razorpayPaymentId');
+            localStorage.removeItem('razorpayOrderId');
+            localStorage.removeItem('paymentTimestamp');
             
             // Regenerate key on cancel to avoid stale key reuse
             idempotencyKeyRef.current =
@@ -296,7 +305,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
           paymentWindow.close();
           clearInterval(checkPaymentStatus);
           setLoading(false);
-          sessionStorage.removeItem('pendingOrderData');
+          localStorage.removeItem('pendingOrderData');
+          localStorage.removeItem('paymentSuccess');
+          localStorage.removeItem('paymentOrderId');
+          localStorage.removeItem('razorpayPaymentId');
+          localStorage.removeItem('razorpayOrderId');
+          localStorage.removeItem('paymentTimestamp');
           toast.error('Payment timeout. Please try again.');
         }
       }, 600000); // 10 minutes

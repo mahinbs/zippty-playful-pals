@@ -29,28 +29,31 @@ const PaymentPage: React.FC = () => {
               try {
                 console.log('Payment successful:', response);
                 
-                // Set success flags for parent window
-                sessionStorage.setItem('paymentSuccess', 'true');
-                sessionStorage.setItem('paymentOrderId', paymentData.orderDbId);
-                sessionStorage.setItem('razorpayPaymentId', response.razorpay_payment_id);
-                sessionStorage.setItem('razorpayOrderId', response.razorpay_order_id);
+                // Use localStorage for cross-tab communication
+                localStorage.setItem('paymentSuccess', 'true');
+                localStorage.setItem('paymentOrderId', paymentData.orderDbId);
+                localStorage.setItem('razorpayPaymentId', response.razorpay_payment_id);
+                localStorage.setItem('razorpayOrderId', response.razorpay_order_id);
+                localStorage.setItem('paymentTimestamp', Date.now().toString());
                 
-                // Small delay to ensure sessionStorage is set
+                // Small delay to ensure localStorage is set
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
-                console.log('Session storage set, closing window');
+                console.log('Payment data saved to localStorage, closing window');
                 // Close this payment window
                 window.close();
               } catch (error) {
                 console.error('Payment success handling failed:', error);
-                sessionStorage.setItem('paymentSuccess', 'false');
+                localStorage.setItem('paymentSuccess', 'false');
+                localStorage.setItem('paymentTimestamp', Date.now().toString());
                 window.close();
               }
             },
             modal: {
               ondismiss: () => {
                 console.log('Payment dismissed by user');
-                sessionStorage.setItem('paymentSuccess', 'false');
+                localStorage.setItem('paymentSuccess', 'false');
+                localStorage.setItem('paymentTimestamp', Date.now().toString());
                 setTimeout(() => window.close(), 100);
               }
             }
@@ -62,14 +65,16 @@ const PaymentPage: React.FC = () => {
 
         script.onerror = () => {
           console.error('Failed to load Razorpay script');
-          sessionStorage.setItem('paymentSuccess', 'false');
+          localStorage.setItem('paymentSuccess', 'false');
+          localStorage.setItem('paymentTimestamp', Date.now().toString());
           window.close();
         };
 
         document.body.appendChild(script);
       } catch (error) {
         console.error('Payment initialization failed:', error);
-        sessionStorage.setItem('paymentSuccess', 'false');
+        localStorage.setItem('paymentSuccess', 'false');
+        localStorage.setItem('paymentTimestamp', Date.now().toString());
         window.close();
       }
     };
