@@ -451,6 +451,11 @@ const Admin = () => {
 
   // Access denied - only show when auth is complete and user is not admin
   if (user && !authLoading && !isAdmin) {
+    const handleLogout = async () => {
+      await signOut();
+      navigate('/admin');
+    };
+
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -458,12 +463,17 @@ const Admin = () => {
           <h1 className="text-2xl font-bold text-foreground mb-2">
             Access Denied
           </h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-6">
             You don't have admin privileges.
           </p>
-          <Button onClick={() => navigate("/")} variant="outline">
-            Go Home
-          </Button>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={handleLogout} variant="outline">
+              Logout & Try Again
+            </Button>
+            <Button onClick={() => navigate("/")} variant="outline">
+              Go Home
+            </Button>
+          </div>
         </div>
       </div>
     );
