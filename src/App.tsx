@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AdminProvider } from "@/contexts/AdminContext";
 import GlobalBubbles from "@/components/GlobalBubbles";
 
 // Error Boundary Component
@@ -101,6 +102,8 @@ const Terms = React.lazy(() => import("./pages/Terms"));
 const Shipping = React.lazy(() => import("./pages/Shipping"));
 const Returns = React.lazy(() => import("./pages/Returns"));
 const Warranty = React.lazy(() => import("./pages/Warranty"));
+const Orders = React.lazy(() => import("./pages/Orders"));
+const AdminSetup = React.lazy(() => import("./pages/AdminSetup"));
 const NotFound = React.lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -121,7 +124,8 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/admin" element={<AdminProvider><Admin /></AdminProvider>} />
+                    <Route path="/admin/setup" element={<AdminSetup />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/privacy" element={<Privacy />} />
@@ -129,6 +133,8 @@ const App = () => {
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/returns" element={<Returns />} />
                     <Route path="/warranty" element={<Warranty />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/orders/:orderId" element={<Orders />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

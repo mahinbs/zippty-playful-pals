@@ -10,22 +10,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, LogOut, Settings, Package, Users, BarChart3, Upload, Save, X, Image, Link, FileImage, Loader2, ShoppingBag, AlertCircle } from "lucide-react";
 import { formatPrice } from "@/services/api";
 import { productsService, AdminProduct, ProductStats, convertToDatabaseProduct } from "@/services/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-// Mock admin credentials (in production, this would be in a secure backend)
-const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "zippty2024"
-};
+import OrderManagement from "@/components/OrderManagement";
+import { useAdmin } from "@/contexts/AdminContext";
+import { toast } from 'sonner';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
+  const { user, isAdmin, loading: authLoading, signIn, signOut } = useAdmin();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   
@@ -82,14 +79,12 @@ const Admin = () => {
     setEditingProduct(null);
   };
 
-  // Check if user is already authenticated
+  // Load data when user becomes admin
   useEffect(() => {
-    const authStatus = localStorage.getItem("admin-authenticated");
-    if (authStatus === "true") {
-      setIsAuthenticated(true);
+    if (isAdmin) {
       loadData();
     }
-  }, []);
+  }, [isAdmin]);
 
   const loadData = async () => {
     try {
@@ -113,21 +108,19 @@ const Admin = () => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      setIsAuthenticated(true);
-      localStorage.setItem("admin-authenticated", "true");
-      loadData();
-    } else {
-      setLoginError("Invalid username or password");
+    
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      setLoginError(error.message || "Login failed. Please check your credentials.");
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem("admin-authenticated");
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
@@ -362,8 +355,36 @@ const Admin = () => {
     }
   };
 
+  // Loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Access denied
+  if (user && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-4">You don't have admin privileges.</p>
+          <Button onClick={() => navigate("/")} variant="outline">
+            Go Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Login Form
-  if (!isAuthenticated) {
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-20">
@@ -372,18 +393,18 @@ const Admin = () => {
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Admin Login</CardTitle>
                 <CardDescription>
-                  Enter your credentials to access the admin panel
+                  Enter your admin credentials to access the admin panel
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input 
-                      id="username" 
-                      type="text" 
-                      value={username} 
-                      onChange={e => setUsername(e.target.value)} 
+                      id="email" 
+                      type="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
                       required 
                     />
                   </div>
@@ -397,7 +418,12 @@ const Admin = () => {
                       required 
                     />
                   </div>
-                  {loginError && <div className="text-red-500 text-sm">{loginError}</div>}
+                  {loginError && (
+                    <div className="text-red-500 text-sm flex items-center space-x-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>{loginError}</span>
+                    </div>
+                  )}
                   <Button type="submit" className="w-full">
                     Login
                   </Button>
@@ -516,6 +542,7 @@ const Admin = () => {
         <Tabs defaultValue="products" className="space-y-6">
           <TabsList>
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -966,6 +993,10 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="orders" className="space-y-6">
+            <OrderManagement />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

@@ -18,11 +18,12 @@ import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/services/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { CheckoutModal } from "@/components/CheckoutModal";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { state, removeItem, updateQuantity, clearCart } = useCart();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -33,14 +34,11 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    setIsCheckingOut(true);
-    // Here you would typically redirect to a checkout page or payment processor
-    setTimeout(() => {
-      setIsCheckingOut(false);
-      // For demo purposes, we'll just clear the cart
-      clearCart();
-      navigate('/shop');
-    }, 2000);
+    setShowCheckoutModal(true);
+  };
+
+  const handleOrderSuccess = (orderId: string) => {
+    navigate(`/orders/${orderId}`);
   };
 
   if (state.items.length === 0) {
@@ -231,20 +229,10 @@ const Cart = () => {
               {/* Checkout Button */}
               <Button
                 onClick={handleCheckout}
-                disabled={isCheckingOut}
-                className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105"
               >
-                {isCheckingOut ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Proceed to Checkout
-                  </>
-                )}
+                <CreditCard className="h-5 w-5 mr-2" />
+                Proceed to Checkout
               </Button>
               
               {/* Benefits */}
@@ -268,6 +256,12 @@ const Cart = () => {
       </div>
       
       <Footer />
+      
+      <CheckoutModal 
+        isOpen={showCheckoutModal}
+        onClose={() => setShowCheckoutModal(false)}
+        onSuccess={handleOrderSuccess}
+      />
     </div>
   );
 };

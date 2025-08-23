@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          permissions: Json | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          delivery_address: Json
+          id: string
+          items: Json
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          delivery_address: Json
+          id?: string
+          items: Json
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          delivery_address?: Json
+          id?: string
+          items?: Json
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
@@ -73,7 +145,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
