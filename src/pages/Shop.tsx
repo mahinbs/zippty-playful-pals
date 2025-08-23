@@ -32,18 +32,17 @@ const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // Fetch products on component mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch active products from database
         const dbProducts = await productsService.getActiveProducts();
         const formattedProducts = dbProducts.map(convertToFrontendProduct);
-        
+
         setProducts(formattedProducts);
         setFilteredProducts(formattedProducts);
       } catch (error) {
@@ -62,17 +61,19 @@ const Shop = () => {
 
     // Filter by search query
     if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Filter by category
     if (selectedCategory !== "all") {
-      filtered = filtered.filter(product =>
-        product.category.toLowerCase() === selectedCategory.toLowerCase()
+      filtered = filtered.filter(
+        (product) =>
+          product.category.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
@@ -84,7 +85,10 @@ const Shop = () => {
     setIsModalOpen(true);
   };
 
-  const categories = ["all", ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = [
+    "all",
+    ...Array.from(new Set(products.map((p) => p.category))),
+  ];
 
   if (loading) {
     return (
@@ -105,10 +109,10 @@ const Shop = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <section className="relative h-[50vh] flex items-center justify-center text-center text-white overflow-hidden">
-        <img 
-          src={heroImage} 
-          alt="Shop Banner" 
-          className="absolute inset-0 w-full h-full object-cover opacity-60" 
+        <img
+          src={heroImage}
+          alt="Shop Banner"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 max-w-4xl mx-auto space-y-6 px-4">
@@ -119,8 +123,9 @@ const Shop = () => {
             Premium pet care products for your beloved companions
           </h2>
           <p className="text-lg text-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-3xl mx-auto">
-            Discover our collection of innovative pet toys, interactive toys, and feeding solutions 
-            designed to keep your pets happy, healthy, and entertained.
+            Discover our collection of innovative pet toys, interactive toys,
+            and feeding solutions designed to keep your pets happy, healthy, and
+            entertained.
           </p>
         </div>
       </section>
@@ -139,7 +144,7 @@ const Shop = () => {
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-lg text-slate-300 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-200/50 hover:bg-slate-300/50 backdrop-blur-md border border-slate-700/50 rounded-full hover:text-blue-500 placeholder-slate-500 focus:border-transparent"
                   />
                 </div>
 
@@ -149,34 +154,14 @@ const Shop = () => {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-3 text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="bg-slate-200/50 border border-slate-700/50 rounded-lg px-4 py-3 text-slate-900"
                   >
-                    {categories.map(category => (
+                    {categories.map((category) => (
                       <option key={category} value={category}>
                         {category === "all" ? "All Categories" : category}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                {/* View Mode Toggle */}
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setViewMode("grid")}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-800"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "outline"}
-                    size="icon"
-                    onClick={() => setViewMode("list")}
-                    className="border-slate-600 text-slate-300 hover:bg-slate-800"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             </GlassCard>
@@ -193,7 +178,9 @@ const Shop = () => {
           {filteredProducts.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-slate-300 mb-2">No products found</h3>
+              <h3 className="text-2xl font-bold text-slate-300 mb-2">
+                No products found
+              </h3>
               <p className="text-slate-400 mb-6">
                 Try adjusting your search or filter criteria
               </p>
@@ -208,14 +195,12 @@ const Shop = () => {
               </Button>
             </div>
           ) : (
-            <div className={`grid gap-8 ${
-              viewMode === "grid" 
-                ? "md:grid-cols-2 lg:grid-cols-3" 
-                : "grid-cols-1"
-            }`}>
+            <div
+              className={`grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`}
+            >
               {filteredProducts.map((product) => (
                 <div key={product.id}>
-                  <ProductCard 
+                  <ProductCard
                     product={product}
                     onViewDetails={() => handleViewDetails(product)}
                   />
@@ -223,22 +208,9 @@ const Shop = () => {
               ))}
             </div>
           )}
-
-          {/* Load More Button */}
-          {filteredProducts.length > 0 && (
-            <div className="text-center mt-12">
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-slate-600 text-slate-300 hover:bg-slate-800 px-8 py-3"
-              >
-                Load More Products
-              </Button>
-            </div>
-          )}
         </div>
       </section>
-      <ProductDetailModal 
+      <ProductDetailModal
         product={selectedProduct}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

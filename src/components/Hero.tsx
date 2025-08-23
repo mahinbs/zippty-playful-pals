@@ -51,7 +51,7 @@ const Hero = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-scale-in">
+          <div className="flex flex-col gap-8 justify-center items-center animate-scale-in pb-20">
             <Button
               onClick={() => navigate("/shop")}
               variant="hero"
@@ -61,6 +61,11 @@ const Hero = () => {
               Shop Now
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
+            <div className="text-lg text-white/90 animate-bounce-slow drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
+              <p className="">
+                ✨ Transform playtime into an extraordinary adventure ✨
+              </p>
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -109,10 +114,6 @@ const Hero = () => {
               </div>
             </GlassCard>
           </div> */}
-
-          <div className="text-lg text-white/90 animate-bounce-slow drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
-            ✨ Transform playtime into an extraordinary adventure ✨
-          </div>
         </div>
       </div>
     </section>

@@ -1,56 +1,22 @@
-import { Product } from '@/contexts/CartContext';
+import { Product, CartItem } from '@/contexts/CartContext';
 
 // Re-export Product type for easier imports
 export type { Product };
 import { supabase } from '@/integrations/supabase/client';
+import { cartSyncRateLimiter } from '@/lib/rateLimiter';
 import robotToyPremium from '@/assets/robot-toy-premium.jpg';
 import catToyPremium from '@/assets/cat-toy-premium.jpg';
 import puzzleFeederPremium from '@/assets/puzzle-feeder-premium.jpg';
 import laserToyPremium from '@/assets/laser-toy-premium.jpg';
 
-// API Configuration - Use import.meta.env for Vite
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
-// API endpoints
-const ENDPOINTS = {
-  PRODUCTS: '/products',
-  CART: '/cart',
-  CART_SYNC: '/cart/sync',
-};
-
-// Helper function for API calls
-const apiCall = async (endpoint: string, options: RequestInit = {}) => {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  const defaultOptions: RequestInit = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  };
-
-  try {
-    const response = await fetch(url, defaultOptions);
-    
-    if (!response.ok) {
-      throw new Error(`API call failed: ${response.status} ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API call error:', error);
-    throw error;
-  }
-};
-
-// Product API functions
+// Product API functions - Using Supabase directly
 export const productAPI = {
   // Fetch all products
   getAllProducts: async (): Promise<Product[]> => {
     try {
-      const products = await apiCall(ENDPOINTS.PRODUCTS);
-      return products;
+      // For now, return mock data since we don't have a products table
+      // In the future, you can fetch from Supabase products table
+      return getMockProducts();
     } catch (error) {
       console.error('Error fetching products:', error);
       // Return mock data if API fails
@@ -61,8 +27,8 @@ export const productAPI = {
   // Fetch product by ID
   getProductById: async (id: string): Promise<Product | null> => {
     try {
-      const product = await apiCall(`${ENDPOINTS.PRODUCTS}/${id}`);
-      return product;
+      const products = getMockProducts();
+      return products.find(product => product.id === id) || null;
     } catch (error) {
       console.error('Error fetching product:', error);
       return null;
@@ -72,8 +38,13 @@ export const productAPI = {
   // Search products
   searchProducts: async (query: string): Promise<Product[]> => {
     try {
-      const products = await apiCall(`${ENDPOINTS.PRODUCTS}/search?q=${encodeURIComponent(query)}`);
-      return products;
+      const products = getMockProducts();
+      const searchTerm = query.toLowerCase();
+      return products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.description.toLowerCase().includes(searchTerm) ||
+        product.category.toLowerCase().includes(searchTerm)
+      );
     } catch (error) {
       console.error('Error searching products:', error);
       return [];
@@ -81,52 +52,61 @@ export const productAPI = {
   },
 };
 
-// Cart API functions
+// Cart API functions - Using localStorage and Supabase
 export const cartAPI = {
-  // Sync cart with backend (for logged-in users)
-  syncCart: async (cartItems: any[]): Promise<boolean> => {
+  // Sync cart with Supabase (for logged-in users)
+  syncCart: async (cartItems: CartItem[]): Promise<boolean> => {
     try {
-      // Get token from Supabase session
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) {
-        return false; // No token, skip sync
+      // Check rate limiting before making the request
+      if (!cartSyncRateLimiter.canMakeRequest('cart-sync')) {
+        const timeUntilNext = cartSyncRateLimiter.getTimeUntilNextRequest('cart-sync');
+        throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(timeUntilNext / 1000)} seconds.`);
       }
 
-      await apiCall(ENDPOINTS.CART_SYNC, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ items: cartItems }),
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        return false; // No user, skip sync
+      }
+
+      // Check if cart data has actually changed to avoid unnecessary updates
+      const currentCart = user.user_metadata?.cart || [];
+      const cartChanged = JSON.stringify(currentCart) !== JSON.stringify(cartItems);
+      
+      if (!cartChanged) {
+        return true; // No change, skip update
+      }
+
+      // Store cart in Supabase user_metadata or a separate cart table
+      const { error } = await supabase.auth.updateUser({
+        data: { cart: cartItems }
       });
+
+      if (error) {
+        console.error('Error syncing cart to Supabase:', error);
+        // Re-throw the error so the calling code can handle rate limiting
+        throw error;
+      }
       
       return true;
     } catch (error) {
       console.error('Error syncing cart:', error);
-      return false;
+      throw error; // Re-throw to allow proper error handling
     }
   },
 
-  // Get user's cart from backend
-  getUserCart: async (): Promise<any[]> => {
+  // Get user's cart from Supabase
+  getUserCart: async (): Promise<CartItem[]> => {
     try {
-      // Get token from Supabase session
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const { data: { user } } = await supabase.auth.getUser();
       
-      if (!token) {
+      if (!user) {
         return [];
       }
 
-      const cart = await apiCall(ENDPOINTS.CART, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      return cart.items || [];
+      // Get cart from user metadata
+      const cart = user.user_metadata?.cart || [];
+      return Array.isArray(cart) ? cart : [];
     } catch (error) {
       console.error('Error fetching user cart:', error);
       return [];
