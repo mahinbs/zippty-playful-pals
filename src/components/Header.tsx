@@ -172,12 +172,6 @@ const Header = () => {
                 </div>
               )}
               
-              <Button 
-                onClick={() => navigate('/shop')}
-                className="md:block hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Shop Now
-              </Button>
               
               <Button 
                 variant="ghost" 
@@ -362,15 +356,6 @@ const Header = () => {
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                 >
                   Sign Up
-                </Button>
-                <Button
-                  onClick={() => {
-                    navigate('/shop');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
-                >
-                  Shop Now
                 </Button>
               </div>
             )}
