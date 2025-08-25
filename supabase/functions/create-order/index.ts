@@ -67,7 +67,7 @@ serve(async (req) => {
 
     console.log("Creating order for amount:", amount);
 
-    // Get Razorpay keys from Supabase secrets
+    
     const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
     const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
 
