@@ -2,7 +2,6 @@
 
 A modern, full-stack e-commerce platform for premium pet toys and interactive companions.
 
-
 ## 🌟 Features
 
 ### 🔐 **User Authentication**
