@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart, ShoppingCart, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useCart, Product } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { formatPrice } from "@/services/api";
 
 interface ProductCardProps {
@@ -12,10 +13,10 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
-  const [isLiked, setIsLiked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem, isInCart, getItemQuantity } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
@@ -27,6 +28,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
 
   const cartQuantity = getItemQuantity(product.id);
   const isInCartState = isInCart(product.id);
+  const isLiked = isInWishlist(product.id);
 
   return (
     <GlassCard 
@@ -68,7 +70,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
           
           {/* Heart Button */}
           <button
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={() => toggleWishlist(product)}
             className={`absolute z-10 top-4 right-4 p-3 rounded-full backdrop-blur-md border border-white/20 transition-all duration-300 ${
               isLiked ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white hover:bg-white/20'
             }`}

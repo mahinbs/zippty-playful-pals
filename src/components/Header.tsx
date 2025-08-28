@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
-import { ShoppingCart, Menu, User, LogOut, Package, X } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut, Package, X, Heart } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "./AuthModal";
 import { useState } from "react";
@@ -19,6 +20,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { state } = useCart();
+  const { state: wishlistState } = useWishlist();
   const { user, signOut } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -108,6 +110,20 @@ const Header = () => {
             </nav>
             
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => navigate('/wishlist')}
+                className="relative bg-slate-200/50 hover:bg-slate-300/50 backdrop-blur-md border border-slate-700/50 rounded-full h-12 w-12 hover:text-red-400"
+              >
+                <Heart className="h-6 w-6" />
+                {wishlistState.count > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5 w-5 bg-gradient-to-r from-red-400 to-pink-500 rounded-full text-xs text-white flex items-center justify-center animate-bounce">
+                    {wishlistState.count > 99 ? '99+' : wishlistState.count}
+                  </span>
+                )}
+              </Button>
+              
               <Button 
                 variant="ghost" 
                 size="icon"

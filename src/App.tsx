@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { WishlistProvider } from "@/contexts/WishlistContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
 import GlobalBubbles from "@/components/GlobalBubbles";
@@ -94,6 +95,7 @@ const LoadingFallback = () => (
 const Index = React.lazy(() => import("./pages/Index"));
 const Shop = React.lazy(() => import("./pages/Shop"));
 const Cart = React.lazy(() => import("./pages/Cart"));
+const Wishlist = React.lazy(() => import("./pages/Wishlist"));
 const Admin = React.lazy(() => import("./pages/Admin"));
 const About = React.lazy(() => import("./pages/About"));
 const Contact = React.lazy(() => import("./pages/Contact"));
@@ -115,7 +117,8 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <CartProvider>
-            <TooltipProvider>
+            <WishlistProvider>
+              <TooltipProvider>
               <GlobalBubbles />
               <Toaster />
               <Sonner />
@@ -125,6 +128,7 @@ const App = () => {
                     <Route path="/" element={<Index />} />
                     <Route path="/shop" element={<Shop />} />
                     <Route path="/cart" element={<Cart />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
                     <Route path="/admin" element={<AdminProvider><Admin /></AdminProvider>} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
@@ -140,7 +144,8 @@ const App = () => {
                   </Routes>
                 </Suspense>
               </BrowserRouter>
-            </TooltipProvider>
+              </TooltipProvider>
+            </WishlistProvider>
           </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
