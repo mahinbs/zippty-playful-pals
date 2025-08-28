@@ -81,7 +81,7 @@ const Warranty = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-muted-foreground">+91 6367189188</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Live Chat</h4>

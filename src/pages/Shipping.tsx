@@ -32,24 +32,46 @@ const Shipping = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-12">
             
-            {/* Shipping Options */}
+            {/* Shipping Information */}
             <GlassCard className="p-8">
-              <h2 className="text-3xl font-bold mb-8 text-primary text-center">Shipping Options</h2>
+              <h2 className="text-3xl font-bold mb-8 text-primary text-center">Shipping Information</h2>
               
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center p-6 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                <div className="text-center p-6 bg-slate-800/5 rounded-lg border border-slate-700/50">
                   <div className="text-3xl mb-4">🚚</div>
+                  <h3 className="font-semibold mb-2">Standard Shipping</h3>
                   <p className="text-sm text-muted-foreground mb-4">5-7 business days</p>
                   <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Free on all orders</li>
                     <li>• Tracking included</li>
-                    <li>• Insurance up to $100</li>
+                    <li>• Insurance included</li>
                     <li>• Signature not required</li>
                   </ul>
                 </div>
                 
+                <div className="text-center p-6 bg-slate-800/5 rounded-lg border border-slate-700/50">
+                  <div className="text-3xl mb-4">📦</div>
+                  <h3 className="font-semibold mb-2">Order Processing</h3>
+                  <p className="text-sm text-muted-foreground mb-4">5-7 business days</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Orders ship quickly</li>
+                    <li>• Quality checked</li>
+                    <li>• Secure packaging</li>
+                    <li>• Email confirmation</li>
+                  </ul>
+                </div>
                 
-                
-                
+                <div className="text-center p-6 bg-slate-800/5 rounded-lg border border-slate-700/50">
+                  <div className="text-3xl mb-4">🌍</div>
+                  <h3 className="font-semibold mb-2">Delivery Areas</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Nationwide coverage</p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• All major cities</li>
+                    <li>• Rural areas included</li>
+                    <li>• International shipping</li>
+                    <li>• Remote locations</li>
+                  </ul>
+                </div>
               </div>
             </GlassCard>
 
@@ -61,10 +83,28 @@ const Shipping = () => {
               </div>
               
               <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 p-6 rounded-lg border border-green-500/30">
-                <h3 className="text-xl font-semibold mb-3 text-green-400">Free Standard Shipping on Orders Over 50</h3>
+                <h3 className="text-xl font-semibold mb-3 text-green-400">Free Shipping on All Orders</h3>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Enjoy free standard shipping on all orders of 50 or more.
+                  We believe in making pet care accessible to everyone. That's why we offer free shipping on every order, regardless of the amount.
                 </p>
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div className="flex items-center text-sm">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>No minimum order value</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Standard 5-7 day delivery</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Tracking included</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <span className="text-green-400 mr-2">✓</span>
+                    <span>Insurance included</span>
+                  </div>
+                </div>
               </div>
             </GlassCard>
 
@@ -75,7 +115,7 @@ const Shipping = () => {
               <div className="space-y-6">
                 <div className="border-b border-slate-700 pb-4">
                   <h3 className="text-lg font-semibold mb-2">When will my order ship?</h3>
-                  <p className="text-muted-foreground">Most orders ship within 1-2 business days. Orders placed before 2 PM EST typically ship the same day.</p>
+                  <p className="text-muted-foreground">Most orders ship within 5-7 business days.</p>
                 </div>
                 
                 <div className="border-b border-slate-700 pb-4">
@@ -85,7 +125,7 @@ const Shipping = () => {
                 
                 <div className="border-b border-slate-700 pb-4">
                   <h3 className="text-lg font-semibold mb-2">What if my package is damaged?</h3>
-                  <p className="text-muted-foreground">All packages are insured. If your package arrives damaged, please contact us within 48 hours with photos for a replacement.</p>
+                  <p className="text-muted-foreground">All packages are insured. If your package arrives damaged, please contact us immediately with photos. We'll work with you to resolve the issue.</p>
                 </div>
                 
                 <div>
@@ -109,7 +149,7 @@ const Shipping = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-muted-foreground">+91 6367189188</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Live Chat</h4>

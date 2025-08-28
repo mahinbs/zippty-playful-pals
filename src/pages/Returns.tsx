@@ -69,11 +69,9 @@ const Returns = () => {
                 <div className="space-y-6">
                   <h3 className="text-xl font-semibold text-blue-400">📞 Customer Support</h3>
                   <ul className="list-disc list-inside text-muted-foreground space-y-3">
-                    <li>Pre-purchase consultation available</li>
                     <li>Detailed product information provided</li>
                     <li>Product usage guidance</li>
                     <li>Technical support for smart products</li>
-                    <li>Pet care advice included</li>
                   </ul>
                 </div>
               </div>
@@ -93,7 +91,7 @@ const Returns = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-muted-foreground">+91 6367189188</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Live Chat</h4>

@@ -27,7 +27,7 @@ const Footer = () => {
     }
   };
   return (
-    <footer className="bg-[#9292f8] border-t border-slate-800 text-slate-900">
+    <footer className="bg-[#abd5ff] border-t text-slate-900">
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8">
           <div className="space-y-4">
@@ -76,7 +76,7 @@ const Footer = () => {
 
           <div className="space-y-4 md:flex flex-col items-end">
             <div className="space-y-4">
-              <h4 className="font-semibold text-white">Products</h4>
+              <h4 className="font-semibold">Products</h4>
               <div className="space-y-2 text-sm">
                 <Link
                   to="/shop"
@@ -103,7 +103,7 @@ const Footer = () => {
 
           <div className="md:flex flex-col items-end">
             <div className="space-y-4">
-              <h4 className="font-semibold text-white">Support</h4>
+              <h4 className="font-semibold">Support</h4>
               <div className="space-y-2 text-sm">
                 <Link
                   to="/contact"

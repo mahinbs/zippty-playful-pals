@@ -118,21 +118,17 @@ const Cart = () => {
               
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-muted-foreground">Shipping</span>
-                {state.total >= 4000 ? (
-                  <span className="text-sm sm:text-base text-green-600 dark:text-green-400">Free</span>
-                ) : (
-                  <span className="text-sm sm:text-base text-foreground">{formatPrice(200)}</span>
-                )}
+                <span className="text-sm sm:text-base text-green-600 dark:text-green-400">Free</span>
               </div>
               
-              <div className="border-t border-border pt-3 sm:pt-4">
-                <div className="flex justify-between">
-                  <span className="text-base sm:text-lg font-semibold text-foreground">Total</span>
-                  <span className="text-lg sm:text-xl font-bold text-primary">
-                    {formatPrice(state.total + (state.total >= 4000 ? 0 : 200))}
-                  </span>
+                              <div className="border-t border-border pt-3 sm:pt-4">
+                  <div className="flex justify-between">
+                    <span className="text-base sm:text-lg font-semibold text-foreground">Total</span>
+                    <span className="text-lg sm:text-xl font-bold text-primary">
+                      {formatPrice(state.total)}
+                    </span>
+                  </div>
                 </div>
-              </div>
             </div>
             
             {/* Checkout Button */}
@@ -262,18 +258,14 @@ const Cart = () => {
                 
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
-                  {state.total >= 4000 ? (
-                    <span className="text-green-600 dark:text-green-400">Free</span>
-                  ) : (
-                    <span className="text-foreground">{formatPrice(200)}</span>
-                  )}
+                  <span className="text-green-600 dark:text-green-400">Free</span>
                 </div>
                 
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold text-foreground">Total</span>
                     <span className="text-xl font-bold text-primary">
-                      {formatPrice(state.total + (state.total >= 4000 ? 0 : 200))}
+                      {formatPrice(state.total)}
                     </span>
                   </div>
                 </div>
@@ -292,12 +284,12 @@ const Cart = () => {
               <div className="mt-6 space-y-3">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Truck className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
-                  Free shipping on orders over ₹4000
+                  Free shipping on all orders
                 </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Shield className="h-4 w-4 mr-2 text-primary" />
-                  30-day return policy
-                </div>
+                {/*                  <div className="flex items-center text-sm text-muted-foreground">
+                   <Shield className="h-4 w-4 mr-2 text-primary" />
+                   All sales final
+                 </div> */}
                 <div className="flex items-center text-sm text-muted-foreground">
                   <CheckCircle className="h-4 w-4 mr-2 text-green-600 dark:text-green-400" />
                   Secure checkout

@@ -148,35 +148,38 @@ const Terms = () => {
                     <li>All prices are listed in INR unless otherwise specified</li>
                     <li>Sales tax will be added where applicable</li>
                     <li>Prices are subject to change without notice</li>
-                    <li>Shipping costs are calculated at checkout</li>
+                    <li>Free shipping on all orders</li>
                   </ul>
                 </div>
               </div>
             </GlassCard>
 
-            {/* Shipping & Returns */}
+            {/* Shipping Policy */}
             <GlassCard className="p-8">
-              <h2 className="text-3xl font-bold mb-6 text-primary">Shipping & Returns</h2>
+              <h2 className="text-3xl font-bold mb-6 text-primary">Shipping Policy</h2>
               
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Shipping Policy</h3>
+                  <h3 className="text-xl font-semibold">Shipping Information</h3>
                   <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>Orders typically ship within 1-2 business days</li>
-                    <li>Free shipping on orders over $50</li>
+                    <li>Orders typically ship within 5-7 business days</li>
+                    <li>Free shipping on all orders</li>
                     <li>Tracking information provided via email</li>
                     <li>International shipping available to select countries</li>
                   </ul>
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold">Return Policy</h3>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>30-day return window for most items</li>
-                    <li>Items must be unused and in original packaging</li>
-                    <li>Return shipping costs may apply</li>
-                    <li>Refunds processed within 5-7 business days</li>
-                  </ul>
+                  <h3 className="text-xl font-semibold">No Return Policy</h3>
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg">
+                    <p className="text-red-800 dark:text-red-200 font-medium mb-2">Important Notice:</p>
+                    <ul className="list-disc list-inside text-red-700 dark:text-red-300 space-y-1">
+                      <li>All sales are final once orders are placed</li>
+                      <li>No returns, exchanges, or refunds are accepted</li>
+                      <li>Please review your order carefully before confirming</li>
+                      <li>Contact customer support for any issues with damaged or defective items</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </GlassCard>
@@ -248,7 +251,7 @@ const Terms = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                  <p className="text-muted-foreground">+91 6367189188</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Address</h4>

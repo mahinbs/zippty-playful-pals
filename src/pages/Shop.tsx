@@ -96,7 +96,10 @@ const Shop = () => {
         <Header />
         <div className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div
+              className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 
+            mx-auto mb-4"
+            ></div>
             <p className="text-slate-400">Loading products...</p>
           </div>
         </div>
@@ -108,53 +111,66 @@ const Shop = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <section className="relative h-[50vh] flex items-center justify-center text-center text-white overflow-hidden">
+      <section className="relative h-[60vh] flex items-center justify-center text-center text-white overflow-hidden">
         <img
           src={heroImage}
           alt="Shop Banner"
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
         />
-        <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 max-w-4xl mx-auto space-y-6 px-4">
-          <h1 className="text-4xl md:text-6xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-            Shop Our Products
-          </h1>
-          <h2 className="text-2xl md:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
-            Premium pet care products for your beloved companions
-          </h2>
-          <p className="text-lg text-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-3xl mx-auto">
-            Discover our collection of innovative pet toys, interactive toys,
-            and feeding solutions designed to keep your pets happy, healthy, and
-            entertained.
-          </p>
+        <div className="absolute inset-0 bg-gradient-hero opacity-90" />
+        <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
+        <div className="relative z-10 max-w-5xl mx-auto space-y-8 px-4">
+          <div className="animate-fade-in">
+            <h1 className="text-5xl md:text-7xl font-bold drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] mb-4">
+              Shop Our{" "}
+              <span className="bg-gradient-accent bg-clip-text text-transparent">
+                Products
+              </span>
+            </h1>
+            <h2 className="text-2xl md:text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium mb-6">
+              Premium pet care products for your beloved companions
+            </h2>
+            <p className="text-lg md:text-xl text-white/95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-4xl mx-auto leading-relaxed">
+              Discover our collection of innovative pet toys, interactive toys,
+              and feeding solutions designed to keep your pets happy, healthy,
+              and entertained.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-20 relative">
+        {/* Background Elements */}
+        <div className="absolute inset-0 bg-gradient-mesh opacity-20" />
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-3xl" />
+
+        <div className="relative z-10 container mx-auto px-4">
           {/* Search and Filter Controls */}
-          <div className="mb-12">
-            <GlassCard className="p-6">
-              <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+          <div className="mb-16">
+            <GlassCard
+              intensity="medium"
+              className="p-8 border border-border/50 shadow-soft"
+            >
+              <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
                 {/* Search Bar */}
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <div className="relative flex-1 max-w-lg">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <input
                     type="text"
-                    placeholder="Search products..."
+                    placeholder="Search for the perfect pet toy..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-200/50 hover:bg-slate-300/50 backdrop-blur-md border border-slate-700/50 rounded-full hover:text-blue-500 placeholder-slate-500 focus:border-transparent"
+                    className="w-full pl-12 pr-6 py-4 bg-card/50 hover:bg-card/70 backdrop-blur-md border border-border/50 rounded-2xl hover:border-primary/30 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 placeholder-muted-foreground text-foreground"
                   />
                 </div>
 
                 {/* Category Filter */}
                 <div className="flex items-center space-x-4">
-                  <Filter className="h-5 w-5 text-slate-400" />
+                  <Filter className="h-5 w-5 text-muted-foreground" />
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="bg-slate-200/50 border border-slate-700/50 rounded-lg px-4 py-3 text-slate-900"
+                    className="bg-card/50 border border-border/50 rounded-xl px-6 py-4 text-foreground hover:border-primary/30 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 cursor-pointer"
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>
@@ -168,38 +184,64 @@ const Shop = () => {
           </div>
 
           {/* Results Count */}
-          <div className="mb-8">
-            <p className="text-slate-400">
-              Showing {filteredProducts.length} of {products.length} products
-            </p>
+          <div className="mb-12">
+            <div className="flex items-center justify-between">
+              <p className="text-muted-foreground text-lg">
+                Showing{" "}
+                <span className="font-semibold text-foreground">
+                  {filteredProducts.length}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-foreground">
+                  {products.length}
+                </span>{" "}
+                products
+              </p>
+              {filteredProducts.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  Found {filteredProducts.length} amazing product
+                  {filteredProducts.length !== 1 ? "s" : ""} for your pet
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Products Grid */}
           {filteredProducts.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-slate-300 mb-2">
-                No products found
-              </h3>
-              <p className="text-slate-400 mb-6">
-                Try adjusting your search or filter criteria
-              </p>
-              <Button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                }}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg"
+            <div className="text-center py-24">
+              <GlassCard
+                intensity="light"
+                className="max-w-md mx-auto p-12 border border-border/50"
               >
-                Clear Filters
-              </Button>
+                <div className="text-8xl mb-6 animate-bounce-slow">🔍</div>
+                <h3 className="text-3xl font-bold text-foreground mb-4">
+                  No products found
+                </h3>
+                <p className="text-muted-foreground mb-8 text-lg">
+                  Try adjusting your search or filter criteria to find the
+                  perfect toy for your pet
+                </p>
+                <Button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("all");
+                  }}
+                  className="bg-gradient-primary hover:shadow-glow text-primary-foreground px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+                >
+                  Clear Filters
+                </Button>
+              </GlassCard>
             </div>
           ) : (
             <div
               className={`grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`}
             >
-              {filteredProducts.map((product) => (
-                <div key={product.id}>
+              {filteredProducts.map((product, index) => (
+                <div
+                  key={product.id}
+                  className="animate-scale-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <ProductCard
                     product={product}
                     onViewDetails={() => handleViewDetails(product)}
