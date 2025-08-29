@@ -185,20 +185,16 @@ const Orders = () => {
                 <div className="space-y-3 mb-4">
                   {(() => {
                     const totalAmount = selectedOrder.amount / 100; // Convert from paise to rupees
-                    const shippingCost = totalAmount >= 4200 ? 0 : 200; // If total >= 4200, shipping was free
-                    const subtotal = totalAmount - shippingCost;
                     
                     return (
                       <>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Subtotal</span>
-                          <span className="text-foreground">{formatPrice(subtotal)}</span>
+                          <span className="text-foreground">{formatPrice(totalAmount)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Shipping</span>
-                          <span className="text-foreground">
-                            {shippingCost === 0 ? 'Free' : formatPrice(shippingCost)}
-                          </span>
+                          <span className="text-foreground">Free</span>
                         </div>
                         <div className="border-t border-border pt-3">
                           <div className="flex justify-between">

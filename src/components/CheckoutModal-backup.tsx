@@ -206,9 +206,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     setLoading(true);
 
     try {
-      // Calculate shipping cost
-      const shippingCost = total >= 4000 ? 0 : 200;
-      const finalAmount = total + shippingCost;
+      // Calculate final amount (free shipping for all orders)
+      const finalAmount = total;
 
       // Create order in database first
       const orderData = await createOrder(finalAmount);
@@ -347,8 +346,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
     }
   };
 
-  const shippingCost = total >= 4000 ? 0 : 200;
-  const finalAmount = total + shippingCost;
+  const finalAmount = total;
 
   return (
     <>
@@ -438,7 +436,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, o
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+                  <span>Free</span>
                 </div>
                 <div className="flex justify-between font-semibold border-t pt-1">
                   <span>Total</span>

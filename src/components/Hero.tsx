@@ -29,7 +29,7 @@ const Hero = () => {
               <span className="text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
                 Joy for them{" "}
               </span>
-              <span className="bg-gradient-accent bg-clip-text text-transparent animate-pulse-slow drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+              <span className="bg-gradient-primary bg-clip-text text-transparent drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
                 love from you
               </span>{" "}
               <span className="text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">

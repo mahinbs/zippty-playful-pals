@@ -312,9 +312,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setLoading(true);
 
     try {
-      // Calculate shipping cost
-      const shippingCost = total >= 4000 ? 0 : 200;
-      const finalAmount = total + shippingCost;
+      // Calculate final amount (free shipping for all orders)
+      const finalAmount = total;
 
       // Create order via Edge Function
       const orderData = await createOrder(finalAmount);
@@ -469,8 +468,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const shippingCost = total >= 4000 ? 0 : 200;
-  const finalAmount = total + shippingCost;
+  const finalAmount = total;
 
   return (
     <>
@@ -560,7 +558,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span>{shippingCost === 0 ? 'FREE' : `₹${shippingCost}`}</span>
+                <span>FREE</span>
               </div>
               <div className="flex justify-between font-semibold text-base border-t pt-2">
                 <span>Total</span>
