@@ -17,13 +17,16 @@ const Footer = () => {
   };
   const handleSocialClick = (platform: string) => {
     const socialLinks = {
-      facebook: "https://facebook.com/zippty",
-      twitter: "https://twitter.com/zippty",
-      instagram: "https://instagram.com/zippty",
-      email: "mailto:hello@zippty.com",
+      facebook: "#",
+      twitter: "#",
+      instagram: "#",
+      email: "#",
     };
     if (socialLinks[platform as keyof typeof socialLinks]) {
-      window.open(socialLinks[platform as keyof typeof socialLinks], "_blank");
+      // For now, just show a console message instead of opening links
+      console.log(`Social media link clicked: ${platform} (placeholder link)`);
+      // Uncomment the line below when you have actual social media profiles
+      // window.open(socialLinks[platform as keyof typeof socialLinks], "_blank");
     }
   };
   return (
@@ -44,30 +47,26 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <button
-                onClick={() => handleSocialClick("facebook")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Follow us on Facebook"
+                title="Facebook (Coming Soon)"
               >
                 <Facebook className="h-5 w-5" />
               </button>
               <button
-                onClick={() => handleSocialClick("twitter")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Follow us on Twitter"
+                title="Twitter (Coming Soon)"
               >
                 <Twitter className="h-5 w-5" />
               </button>
               <button
-                onClick={() => handleSocialClick("instagram")}
                 className="h-5 w-5 text-slate-900 hover:text-pink-400 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Follow us on Instagram"
+                title="Instagram (Coming Soon)"
               >
                 <Instagram className="h-5 w-5" />
               </button>
               <button
-                onClick={() => handleSocialClick("email")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Email us"
+                title="Email (Coming Soon)"
               >
                 <Mail className="h-5 w-5" />
               </button>

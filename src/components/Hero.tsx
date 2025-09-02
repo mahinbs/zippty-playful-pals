@@ -43,9 +43,7 @@ const Hero = () => {
 
             <div className="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-white/30 max-w-4xl mx-auto shadow-2xl">
               <p className="text-2xl md:text-3xl text-white leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-medium">
-                At Zippty, we know your pets are more than just animals—they're
-                family. Experience the future of pet care with our revolutionary
-                interactive toys.
+                At Zippty, we know pets are more than just animals they're family. That's why we create innovative interactive toys that keep them happy, engaged, and cared for every moment.
               </p>
             </div>
           </div>
