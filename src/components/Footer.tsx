@@ -17,16 +17,14 @@ const Footer = () => {
   };
   const handleSocialClick = (platform: string) => {
     const socialLinks = {
-      facebook: "#",
+      facebook: "https://www.facebook.com/share/19hGbSKx48/",
       twitter: "#",
-      instagram: "#",
+      instagram: "https://www.instagram.com/zippty_official?igsh=MXR0d2RxNDM2ejd5Yg==",
       email: "#",
     };
     if (socialLinks[platform as keyof typeof socialLinks]) {
-      // For now, just show a console message instead of opening links
-      console.log(`Social media link clicked: ${platform} (placeholder link)`);
-      // Uncomment the line below when you have actual social media profiles
-      // window.open(socialLinks[platform as keyof typeof socialLinks], "_blank");
+      // Open the actual social media links
+      window.open(socialLinks[platform as keyof typeof socialLinks], "_blank");
     }
   };
   return (
@@ -47,24 +45,28 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <button
+                onClick={() => handleSocialClick("facebook")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Facebook (Coming Soon)"
+                title="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </button>
               <button
+                onClick={() => handleSocialClick("twitter")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
                 title="Twitter (Coming Soon)"
               >
                 <Twitter className="h-5 w-5" />
               </button>
               <button
+                onClick={() => handleSocialClick("instagram")}
                 className="h-5 w-5 text-slate-900 hover:text-pink-400 cursor-pointer transition-all duration-300 hover:scale-110"
-                title="Instagram (Coming Soon)"
+                title="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </button>
               <button
+                onClick={() => handleSocialClick("email")}
                 className="h-5 w-5 text-slate-900 hover:text-blue-800 cursor-pointer transition-all duration-300 hover:scale-110"
                 title="Email (Coming Soon)"
               >
