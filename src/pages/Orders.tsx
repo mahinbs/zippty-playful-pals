@@ -185,12 +185,18 @@ const Orders = () => {
                 <div className="space-y-3 mb-4">
                   {(() => {
                     const totalAmount = selectedOrder.amount / 100; // Convert from paise to rupees
+                    const subtotal = totalAmount / 1.18; // Calculate subtotal excluding GST
+                    const gstAmount = subtotal * 0.18; // Calculate GST amount
                     
                     return (
                       <>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Subtotal</span>
-                          <span className="text-foreground">{formatPrice(totalAmount)}</span>
+                          <span className="text-foreground">{formatPrice(subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">GST (18%)</span>
+                          <span className="text-foreground">{formatPrice(gstAmount)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Shipping</span>
