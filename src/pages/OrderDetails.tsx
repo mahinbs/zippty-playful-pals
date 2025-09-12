@@ -222,32 +222,18 @@ const OrderDetails: React.FC = () => {
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-medium mb-3">Order Summary</h3>
               <div className="space-y-2 text-sm">
-                {(() => {
-                  const totalAmount = order.amount / 100; // Convert from paise to rupees
-                  const subtotal = totalAmount / 1.18; // Calculate subtotal excluding GST
-                  const gstAmount = subtotal * 0.18; // Calculate GST amount
-                  
-                  return (
-                    <>
-                      <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span>₹{subtotal.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>GST (18%)</span>
-                        <span>₹{gstAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Delivery</span>
-                        <span className="text-green-600">FREE</span>
-                      </div>
-                      <div className="border-t pt-2 flex justify-between font-medium">
-                        <span>Order Total</span>
-                        <span>₹{totalAmount.toLocaleString()}</span>
-                      </div>
-                    </>
-                  );
-                })()}
+                <div className="flex justify-between">
+                  <span>Items</span>
+                  <span>₹{(order.amount / 100).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Delivery</span>
+                  <span className="text-green-600">FREE</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between font-medium">
+                  <span>Order Total</span>
+                  <span>₹{(order.amount / 100).toLocaleString()}</span>
+                </div>
               </div>
             </div>
 

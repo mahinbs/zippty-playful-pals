@@ -117,23 +117,18 @@ const Cart = () => {
               </div>
               
               <div className="flex justify-between">
-                <span className="text-sm sm:text-base text-muted-foreground">GST (18%)</span>
-                <span className="text-sm sm:text-base text-foreground">{formatPrice(state.total * 0.18)}</span>
-              </div>
-              
-              <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-muted-foreground">Shipping</span>
                 <span className="text-sm sm:text-base text-green-600 dark:text-green-400">Free</span>
               </div>
               
-              <div className="border-t border-border pt-3 sm:pt-4">
-                <div className="flex justify-between">
-                  <span className="text-base sm:text-lg font-semibold text-foreground">Total</span>
-                  <span className="text-lg sm:text-xl font-bold text-primary">
-                    {formatPrice(state.total * 1.18)}
-                  </span>
+                              <div className="border-t border-border pt-3 sm:pt-4">
+                  <div className="flex justify-between">
+                    <span className="text-base sm:text-lg font-semibold text-foreground">Total</span>
+                    <span className="text-lg sm:text-xl font-bold text-primary">
+                      {formatPrice(state.total)}
+                    </span>
+                  </div>
                 </div>
-              </div>
             </div>
             
             {/* Checkout Button */}
@@ -262,11 +257,6 @@ const Cart = () => {
                 </div>
                 
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">GST (18%)</span>
-                  <span className="text-foreground">{formatPrice(state.total * 0.18)}</span>
-                </div>
-                
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">Shipping</span>
                   <span className="text-green-600 dark:text-green-400">Free</span>
                 </div>
@@ -275,9 +265,10 @@ const Cart = () => {
                   <div className="flex justify-between">
                     <span className="text-lg font-semibold text-foreground">Total</span>
                     <span className="text-xl font-bold text-primary">
-                      {formatPrice(state.total * 1.18)}
+                      {formatPrice(state.total)}
                     </span>
                   </div>
+                  <p className="text-gray-500">*Total amount includes GST</p>
                 </div>
               </div>
               

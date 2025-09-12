@@ -312,8 +312,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     setLoading(true);
 
     try {
-      // Calculate final amount (subtotal + 18% GST, free shipping for all orders)
-      const finalAmount = total * 1.18;
+      // Calculate final amount (free shipping for all orders)
+      const finalAmount = total;
 
       // Create order via Edge Function
       const orderData = await createOrder(finalAmount);
@@ -468,7 +468,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }
   };
 
-  const finalAmount = total * 1.18;
+  const finalAmount = total;
 
   return (
     <>
@@ -557,10 +557,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span>₹{total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span>GST (18%)</span>
-                <span>₹{(total * 0.18).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
                 <span>Shipping</span>
                 <span>FREE</span>
               </div>
@@ -568,6 +564,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span>Total</span>
                 <span>₹{finalAmount.toFixed(2)}</span>
               </div>
+              <p className="text-gray-500">*Total amount includes GST</p>
             </div>
           </div>
 
