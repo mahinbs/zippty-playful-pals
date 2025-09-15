@@ -268,7 +268,7 @@ const Cart = () => {
                       {formatPrice(state.total)}
                     </span>
                   </div>
-                  <p className="text-gray-500">*Total amount includes GST</p>
+                  <p className="text-gray-500">*Inclusive of all taxes</p>
                 </div>
               </div>
               
