@@ -68,7 +68,6 @@ serve(async (req) => {
 
     console.log("Creating order for amount:", amount);
 
-    
     const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
     const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
 
@@ -76,37 +75,35 @@ serve(async (req) => {
       throw new Error("Razorpay credentials not configured");
     }
 
-    // Generate a unique idempotency key if not provided or if there's a conflict
-    let finalIdempotencyKey = idempotency_key || `order_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    // Generate a unique idempotency key if not provided
+    const finalIdempotencyKey = idempotency_key || `order_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     // Check for existing order with this idempotency key
-    if (finalIdempotencyKey) {
-      const { data: existingOrder, error: existingOrderError } = await supabaseClient
-        .from("orders")
-        .select("id, razorpay_order_id, amount, currency, status")
-        .eq("user_id", user.id)
-        .eq("idempotency_key", finalIdempotencyKey)
-        .maybeSingle();
+    const { data: existingOrder, error: existingOrderError } = await supabaseClient
+      .from("orders")
+      .select("id, razorpay_order_id, amount, currency, status")
+      .eq("user_id", user.id)
+      .eq("idempotency_key", finalIdempotencyKey)
+      .maybeSingle();
 
-      if (existingOrderError) {
-        console.error("Error checking existing order:", existingOrderError);
-        // Continue with creating new order
-      } else if (existingOrder && existingOrder.razorpay_order_id) {
-        console.log("Existing order found for idempotency_key:", finalIdempotencyKey);
-        return new Response(
-          JSON.stringify({
-            orderId: existingOrder.razorpay_order_id,
-            amount: existingOrder.amount,
-            currency: existingOrder.currency || "INR",
-            keyId: razorpayKeyId,
-            orderDbId: existingOrder.id,
-          }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          }
-        );
-      }
+    if (existingOrderError) {
+      console.error("Error checking existing order:", existingOrderError);
+      // Continue with creating new order
+    } else if (existingOrder && existingOrder.razorpay_order_id) {
+      console.log("Existing order found for idempotency_key:", finalIdempotencyKey);
+      return new Response(
+        JSON.stringify({
+          orderId: existingOrder.razorpay_order_id,
+          amount: existingOrder.amount,
+          currency: existingOrder.currency || "INR",
+          keyId: razorpayKeyId,
+          orderDbId: existingOrder.id,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
     }
 
     console.log("No existing order. Creating new Razorpay order");
@@ -141,23 +138,59 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { data: order, error: dbError } = await supabaseService
-      .from("orders")
-      .insert({
-        user_id: user.id,
-        razorpay_order_id: razorpayOrderData.id,
-        amount: Math.round(amount * 100), // Store in paise
-        items: items,
-        delivery_address: deliveryAddress,
-        status: "pending",
-        idempotency_key: idempotency_key || null,
-      })
-      .select()
-      .single();
+    // Try to create order with retry logic for idempotency key conflicts
+    let order;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    if (dbError) {
-      console.error("Database error:", dbError);
-      throw new Error("Failed to create order in database");
+    while (retryCount < maxRetries) {
+      try {
+        const { data: orderData, error: dbError } = await supabaseService
+          .from("orders")
+          .insert({
+            user_id: user.id,
+            razorpay_order_id: razorpayOrderData.id,
+            amount: Math.round(amount * 100), // Store in paise
+            items: items,
+            delivery_address: deliveryAddress,
+            status: "pending",
+            idempotency_key: finalIdempotencyKey,
+            coupon_id: coupon_id || null,
+            discount_amount: 0, // Will be updated after coupon validation
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          // If it's a unique constraint violation on idempotency_key, try with a new key
+          if (dbError.code === "23505" && dbError.message.includes("idempotency_key")) {
+            console.log(`Idempotency key conflict, retrying with new key (attempt ${retryCount + 1})`);
+            retryCount++;
+            const newIdempotencyKey = `order_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            // Update the key for next attempt
+            finalIdempotencyKey = newIdempotencyKey;
+            continue;
+          } else {
+            console.error("Database error:", dbError);
+            throw new Error("Failed to create order in database");
+          }
+        }
+
+        order = orderData;
+        break; // Success, exit retry loop
+      } catch (error) {
+        if (retryCount >= maxRetries - 1) {
+          throw error;
+        }
+        retryCount++;
+        console.log(`Database error, retrying (attempt ${retryCount + 1}):`, error);
+        // Wait a bit before retry
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    if (!order) {
+      throw new Error("Failed to create order after retries");
     }
 
     console.log("Order created in database:", order.id);

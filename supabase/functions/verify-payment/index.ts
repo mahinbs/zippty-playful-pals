@@ -121,6 +121,58 @@ serve(async (req) => {
 
     console.log("Order status updated to paid:", order.id);
 
+    // If order has a coupon, record the coupon usage
+    if (order.coupon_id) {
+      try {
+        console.log("Recording coupon usage for coupon:", order.coupon_id);
+        
+        // Record coupon usage in coupon_usage table
+        const { error: usageError } = await supabaseService
+          .from('coupon_usage')
+          .insert({
+            coupon_id: order.coupon_id,
+            user_id: user.id,
+            order_id: order.id,
+            discount_amount: order.discount_amount || 0,
+          });
+
+        if (usageError) {
+          console.error("Error recording coupon usage:", usageError);
+          // Don't throw error here, just log it
+        } else {
+          console.log("Coupon usage recorded successfully");
+        }
+
+        // Update coupon used_count - first get current count, then increment
+        const { data: currentCoupon, error: fetchError } = await supabaseService
+          .from('coupons')
+          .select('used_count')
+          .eq('id', order.coupon_id)
+          .single();
+
+        if (fetchError) {
+          console.error("Error fetching current coupon usage:", fetchError);
+        } else {
+          const { error: updateError } = await supabaseService
+            .from('coupons')
+            .update({ 
+              used_count: (currentCoupon?.used_count || 0) + 1,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', order.coupon_id);
+
+          if (updateError) {
+            console.error("Error updating coupon usage count:", updateError);
+          } else {
+            console.log("Coupon usage count updated successfully");
+          }
+        }
+      } catch (error) {
+        console.error("Error processing coupon usage:", error);
+        // Don't throw error here, just log it
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 

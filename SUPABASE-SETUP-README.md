@@ -145,3 +145,6 @@ For issues related to:
 - **Supabase Setup**: Check Supabase documentation
 - **Database Issues**: Check migration script and RLS policies
 - **Frontend Issues**: Check browser console and network tab
+
+
+db pass = zippty-newPa
