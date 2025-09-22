@@ -248,6 +248,11 @@ export const couponsService = {
           : percentageDiscount;
       }
 
+      // Ensure minimum payment of ₹1 - no free orders allowed
+      // Maximum discount = order amount - 1 rupee
+      const maxAllowedDiscount = orderAmount - 1;
+      discount = Math.min(discount, maxAllowedDiscount);
+
       return { valid: true, discount };
     } catch (error) {
       console.error('Error in validateCoupon:', error);

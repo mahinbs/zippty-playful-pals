@@ -164,7 +164,9 @@ export const CheckoutModalWithCouponButton: React.FC<CheckoutModalProps> = ({
 
   const calculateFinalAmount = () => {
     const discount = appliedCoupon ? appliedCoupon.discount : 0;
-    return Math.max(0, total - discount);
+    const discountedAmount = total - discount;
+    // Ensure minimum payment of ₹1 - no free orders allowed
+    return Math.max(1, discountedAmount);
   };
 
   const createOrder = async (finalAmount: number) => {
