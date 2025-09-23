@@ -18,7 +18,7 @@ import { useCart } from "@/contexts/CartContext";
 import { formatPrice } from "@/services/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { CheckoutModal } from "@/components/CheckoutModal";
+import { CheckoutModalWithCouponButton } from "@/components/CheckoutModalWithCouponButton";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -303,7 +303,7 @@ const Cart = () => {
       
       <Footer />
       
-      <CheckoutModal 
+      <CheckoutModalWithCouponButton 
         isOpen={showCheckoutModal}
         onClose={() => setShowCheckoutModal(false)}
         onSuccess={handleOrderSuccess}
