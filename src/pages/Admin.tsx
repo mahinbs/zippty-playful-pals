@@ -62,6 +62,7 @@ import AdminAnalytics from "@/components/AdminAnalytics";
 import AdminSettings from "@/components/AdminSettings";
 import AdminOrderStats from "@/components/AdminOrderStats";
 import AdminCouponManagement from "@/components/AdminCouponManagement";
+import AdminBannerManagement from "@/components/AdminBannerManagement";
 import { useAdmin } from "@/contexts/AdminContext";
 import { toast } from "sonner";
 
@@ -618,6 +619,7 @@ const Admin = () => {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="coupons">Coupons</TabsTrigger>
+            <TabsTrigger value="banners">Banners</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
@@ -1344,6 +1346,10 @@ const Admin = () => {
 
           <TabsContent value="coupons" className="space-y-6">
             <AdminCouponManagement />
+          </TabsContent>
+
+          <TabsContent value="banners" className="space-y-6">
+            <AdminBannerManagement />
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

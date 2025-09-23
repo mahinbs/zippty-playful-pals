@@ -1,71 +1,102 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroPet1 from "@/assets/hero-pet-1.jpg";
-import heroPet2 from "@/assets/hero-pet-2.jpg";
-import heroPet3 from "@/assets/hero-pet-3.jpg";
+import { bannersService, Banner } from "@/services/banners";
 
-const heroImages = [
-  {
-    src: heroPet1,
-    alt: "Golden retriever playing with interactive smart toy",
-    title: "Smart Play for Smart Pets",
-    subtitle: "Interactive toys that adapt to your pet's behavior"
-  },
-  {
-    src: heroPet2,
-    alt: "Orange tabby cat with puzzle feeder",
-    title: "Mental Stimulation Made Fun",
-    subtitle: "Puzzle feeders that challenge and entertain"
-  },
-  {
-    src: heroPet3,
-    alt: "Beagle puppy with automated ball launcher",
-    title: "Endless Entertainment",
-    subtitle: "Automated toys for active playtime"
-  }
-];
+interface HeroCarouselProps {
+  currentBannerIndex?: number;
+  onBannerChange?: (index: number) => void;
+}
 
-const HeroCarousel = () => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+const HeroCarousel = ({ currentBannerIndex = 0, onBannerChange }: HeroCarouselProps) => {
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Load banners from database
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+    const loadBanners = async () => {
+      try {
+        const data = await bannersService.getActiveBanners();
+        setBanners(data);
+      } catch (error) {
+        console.error("Error loading banners:", error);
+        // Use fallback images if banners fail to load
+        setBanners([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearInterval(interval);
+    loadBanners();
   }, []);
 
+  // Use banners if available, otherwise show nothing
+  const heroImages = banners.length > 0 
+    ? banners.map(banner => ({
+        src: banner.background_image,
+        alt: banner.title,
+        title: banner.title,
+        subtitle: banner.subtitle || ""
+      }))
+    : [];
+
   const goToSlide = (index: number) => {
-    setCurrentIndex(index);
+    onBannerChange?.(index);
   };
 
   const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+    const newIndex = (currentBannerIndex - 1 + heroImages.length) % heroImages.length;
+    onBannerChange?.(newIndex);
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    const newIndex = (currentBannerIndex + 1) % heroImages.length;
+    onBannerChange?.(newIndex);
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-pink-900" />
+        <div className="absolute inset-0 bg-black/30" />
+      </div>
+    );
+  }
+
+  // Don't render if no images
+  if (heroImages.length === 0) {
+    return null;
+  }
 
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Background Images */}
-      {heroImages.map((image, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 transform ${
-            index === currentIndex
-              ? "opacity-70 scale-100"
-              : "opacity-0 scale-110"
-          }`}
-          style={{ backgroundImage: `url(${image.src})` }}
-        />
-      ))}
-
-      {/* Dark Overlay for Better Text Contrast */}
-      <div className="absolute inset-0 bg-black/40" />
+      {heroImages.map((image, index) => {
+        const currentBanner = banners[index];
+        const overlayOpacity = currentBanner?.overlay_opacity || 30;
+        const overlayStyle = `rgba(0, 0, 0, ${overlayOpacity / 100})`;
+        
+        return (
+          <div key={index}>
+            <div
+              className={`absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 transform ${
+                index === currentBannerIndex
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-110"
+              }`}
+              style={{ backgroundImage: `url(${image.src})` }}
+            />
+            {/* Dynamic Overlay based on banner settings */}
+            <div 
+              className={`absolute inset-0 transition-all duration-1000 ${
+                index === currentBannerIndex ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ backgroundColor: overlayStyle }}
+            />
+          </div>
+        );
+      })}
 
       {/* Navigation Controls */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-30">
@@ -86,7 +117,7 @@ const HeroCarousel = () => {
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentIndex
+                  index === currentBannerIndex
                     ? "bg-white scale-125"
                     : "bg-white/50 hover:bg-white/70"
                 }`}

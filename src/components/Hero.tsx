@@ -1,12 +1,48 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { ArrowRight, Play, Heart, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import FloatingElements from "./FloatingElements";
 import HeroCarousel from "./HeroCarousel";
+import { bannersService, Banner } from "@/services/banners";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load banners
+  useEffect(() => {
+    const loadBanners = async () => {
+      try {
+        const data = await bannersService.getActiveBanners();
+        setBanners(data);
+      } catch (error) {
+        console.error("Error loading banners:", error);
+        // Use fallback content if banners fail to load
+        setBanners([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBanners();
+  }, []);
+
+  // Auto-rotate banners
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [banners.length]);
+
+  const currentBanner = banners[currentBannerIndex];
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -14,7 +50,10 @@ const Hero = () => {
       <div className="absolute inset-0 bg-gradient-mesh" />
 
       {/* Dynamic Hero Carousel */}
-      <HeroCarousel />
+      <HeroCarousel
+        currentBannerIndex={currentBannerIndex}
+        onBannerChange={setCurrentBannerIndex}
+      />
 
       {/* Floating Elements */}
       <FloatingElements />
@@ -23,48 +62,79 @@ const Hero = () => {
 
       <div className="relative z-20 container mx-auto px-4 text-center text-white">
         <div className="max-w-6xl mx-auto space-y-12">
-          {/* Animated Main Heading */}
-          <div className="space-y-6 animate-fade-in">
-            <h1 className="text-6xl md:text-8xl font-bold leading-tight tracking-tight drop-shadow-2xl">
-              <span className="text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-                Joy for them{" "}
-              </span>
-              <span className="bg-gradient-primary bg-clip-text text-transparent drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-                love from you
-              </span>{" "}
-              <span className="text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-                only at{" "}
-              </span>
-              <span className="relative text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
-                Zippty
-                <div className="absolute -inset-2 bg-gradient-primary opacity-30 blur-xl rounded-full animate-pulse-slow" />
-              </span>
-            </h1>
-
-            <div className="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-white/30 max-w-4xl mx-auto shadow-2xl">
-              <p className="text-2xl md:text-3xl text-white leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-medium">
-                At Zippty, we know pets are more than just animals they're family. That's why we create innovative interactive toys that keep them happy, engaged, and cared for every moment.
+          {isLoading ? (
+            // Loading state
+            <div className="flex flex-col items-center justify-center space-y-6 animate-fade-in">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"></div>
+              <p className="text-xl text-white/90 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
+                Loading banners...
               </p>
             </div>
-          </div>
+          ) : banners.length > 0 && currentBanner ? (
+            // Dynamic banner content
+            <div className="space-y-6 animate-fade-in">
+              <h1
+                className="text-6xl md:text-8xl font-bold leading-tight tracking-tight drop-shadow-2xl"
+                style={{ color: currentBanner.text_color || "white" }}
+              >
+                <span className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+                  {currentBanner.title}
+                </span>
+              </h1>
+
+              {currentBanner.subtitle && (
+                <div className="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-white/30 max-w-4xl mx-auto shadow-2xl">
+                  <p
+                    className="text-2xl md:text-3xl leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-medium"
+                    style={{ color: currentBanner.text_color || "white" }}
+                  >
+                    {currentBanner.subtitle}
+                  </p>
+                </div>
+              )}
+
+              {currentBanner.description && (
+                <div className="backdrop-blur-md rounded-2xl p-4 max-w-3xl mx-auto shadow-xl">
+                  <p
+                    className="text-lg leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
+                    style={{ color: currentBanner.text_color || "white" }}
+                  >
+                    {currentBanner.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-8 justify-center items-center animate-scale-in pb-20">
             <Button
-              onClick={() => navigate("/shop")}
+              onClick={() => navigate(currentBanner?.button_link || "/shop")}
               variant="hero"
               size="lg"
               className="group text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all duration-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
             >
-              Shop Now
+              {currentBanner?.button_text || "Shop Now"}
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
-            <div className="text-lg text-white/90 animate-bounce-slow drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-medium">
-              <p className="">
-                ✨ Transform playtime into an extraordinary adventure ✨
-              </p>
-            </div>
           </div>
+
+          {/* Banner Navigation Dots */}
+          {banners.length > 1 && (
+            <div className="flex justify-center space-x-2 mt-8">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentBannerIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentBannerIndex
+                      ? "bg-white scale-125"
+                      : "bg-white/50 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Stats Cards */}
           {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-slide-up">
