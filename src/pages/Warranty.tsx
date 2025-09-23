@@ -77,7 +77,7 @@ const Warranty = () => {
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
                   <h4 className="font-semibold mb-2">Email</h4>
-                  <p className="text-muted-foreground">quality@zippty.com</p>
+                  <p className="text-muted-foreground">info@zippty.in</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>

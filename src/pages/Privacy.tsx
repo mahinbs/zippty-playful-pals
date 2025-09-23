@@ -181,7 +181,7 @@ const Privacy = () => {
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
                   <h4 className="font-semibold mb-2">Email</h4>
-                  <p className="text-muted-foreground">privacy@zippty.com</p>
+                  <p className="text-muted-foreground">info@zippty.in</p>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Phone</h4>
@@ -189,7 +189,7 @@ const Privacy = () => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Address</h4>
-                  <p className="text-muted-foreground">India</p>
+                  <p className="text-muted-foreground">JP Colony, Shastri Nagar, Jaipur, Rajasthan -302016</p>
                 </div>
               </div>
             </GlassCard>
