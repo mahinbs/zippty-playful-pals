@@ -45,7 +45,7 @@ const Hero = () => {
   const currentBanner = banners[currentBannerIndex];
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden w-full">
       {/* Gradient Mesh Background */}
       <div className="absolute inset-0 bg-gradient-mesh" />
 
@@ -74,7 +74,7 @@ const Hero = () => {
             // Dynamic banner content
             <div className="space-y-6 animate-fade-in">
               <h1
-                className="text-6xl md:text-8xl font-bold leading-tight tracking-tight drop-shadow-2xl"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold leading-tight tracking-tight drop-shadow-2xl"
                 style={{ color: currentBanner.text_color || "white" }}
               >
                 <span className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
@@ -83,9 +83,9 @@ const Hero = () => {
               </h1>
 
               {currentBanner.subtitle && (
-                <div className="bg-black/30 backdrop-blur-md rounded-3xl p-8 border border-white/30 max-w-4xl mx-auto shadow-2xl">
+                <div className="bg-black/30 backdrop-blur-md rounded-3xl p-4 sm:p-6 md:p-8 border border-white/30 max-w-4xl mx-auto shadow-2xl">
                   <p
-                    className="text-2xl md:text-3xl leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-medium"
+                    className="text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-medium"
                     style={{ color: currentBanner.text_color || "white" }}
                   >
                     {currentBanner.subtitle}
@@ -94,9 +94,9 @@ const Hero = () => {
               )}
 
               {currentBanner.description && (
-                <div className="backdrop-blur-md rounded-2xl p-4 max-w-3xl mx-auto shadow-xl">
+                <div className="backdrop-blur-md rounded-2xl p-3 sm:p-4 max-w-3xl mx-auto shadow-xl">
                   <p
-                    className="text-lg leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
+                    className="text-sm sm:text-base md:text-lg leading-relaxed animate-slide-up drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
                     style={{ color: currentBanner.text_color || "white" }}
                   >
                     {currentBanner.description}
@@ -112,29 +112,12 @@ const Hero = () => {
               onClick={() => navigate(currentBanner?.button_link || "/shop")}
               variant="hero"
               size="lg"
-              className="group text-lg px-8 py-4 rounded-2xl hover:scale-105 transition-all duration-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+              className="group text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 rounded-2xl hover:scale-105 transition-all duration-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
             >
               {currentBanner?.button_text || "Shop Now"}
               <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform duration-300" />
             </Button>
           </div>
-
-          {/* Banner Navigation Dots */}
-          {banners.length > 1 && (
-            <div className="flex justify-center space-x-2 mt-8">
-              {banners.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentBannerIndex(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentBannerIndex
-                      ? "bg-white scale-125"
-                      : "bg-white/50 hover:bg-white/70"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
 
           {/* Stats Cards */}
           {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-slide-up">
