@@ -8,7 +8,10 @@ interface HeroCarouselProps {
   onBannerChange?: (index: number) => void;
 }
 
-const HeroCarousel = ({ currentBannerIndex = 0, onBannerChange }: HeroCarouselProps) => {
+const HeroCarousel = ({
+  currentBannerIndex = 0,
+  onBannerChange,
+}: HeroCarouselProps) => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,22 +33,26 @@ const HeroCarousel = ({ currentBannerIndex = 0, onBannerChange }: HeroCarouselPr
     loadBanners();
   }, []);
 
+  console.log({ banners });
   // Use banners if available, otherwise show nothing
-  const heroImages = banners.length > 0 
-    ? banners.map(banner => ({
-        src: banner.background_image,
-        alt: banner.title,
-        title: banner.title,
-        subtitle: banner.subtitle || ""
-      }))
-    : [];
+  const heroImages =
+    banners.length > 0
+      ? banners.map((banner) => ({
+          src: banner.background_image,
+          mobSrc: banner.mobile_image || banner.background_image,
+          alt: banner.title,
+          title: banner.title,
+          subtitle: banner.subtitle || "",
+        }))
+      : [];
 
   const goToSlide = (index: number) => {
     onBannerChange?.(index);
   };
 
   const goToPrevious = () => {
-    const newIndex = (currentBannerIndex - 1 + heroImages.length) % heroImages.length;
+    const newIndex =
+      (currentBannerIndex - 1 + heroImages.length) % heroImages.length;
     onBannerChange?.(newIndex);
   };
 
@@ -76,27 +83,27 @@ const HeroCarousel = ({ currentBannerIndex = 0, onBannerChange }: HeroCarouselPr
         const currentBanner = banners[index];
         const overlayOpacity = currentBanner?.overlay_opacity || 30;
         const overlayStyle = `rgba(0, 0, 0, ${overlayOpacity / 100})`;
-        
+
         return (
           <div key={index}>
-             <img
-               src={image.src}
-               alt={image.alt}
-               className={`absolute inset-0 w-full h-full transition-all duration-1000 transform object-cover ${
-                 index === currentBannerIndex
-                   ? "opacity-100 scale-100"
-                   : "opacity-0 scale-110"
-               }`}
-               style={{ 
-                 minHeight: '100vh',
-                 width: '100%',
-                 height: '100%',
-                 objectFit: 'cover',
-                 objectPosition: 'center center'
-               }}
-             />
+            <img
+              src={window.innerWidth < 768 ? image.mobSrc : image.src}
+              alt={image.alt}
+              className={`absolute inset-0 w-full h-full transition-all duration-1000 transform object-cover ${
+                index === currentBannerIndex
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-110"
+              }`}
+              style={{
+                minHeight: "100vh",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center center",
+              }}
+            />
             {/* Dynamic Overlay based on banner settings */}
-            <div 
+            <div
               className={`absolute inset-0 transition-all duration-1000 ${
                 index === currentBannerIndex ? "opacity-100" : "opacity-0"
               }`}

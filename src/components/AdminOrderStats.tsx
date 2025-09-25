@@ -13,6 +13,7 @@ interface OrderStats {
   cancelled: number;
   totalRevenue: number;
   averageOrderValue: number;
+  potentialRevenue: number;
 }
 
 const AdminOrderStats = () => {
@@ -25,6 +26,7 @@ const AdminOrderStats = () => {
     cancelled: 0,
     totalRevenue: 0,
     averageOrderValue: 0,
+    potentialRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,8 +51,25 @@ const AdminOrderStats = () => {
         const shipped = orders.filter(o => o.status === 'shipped').length;
         const delivered = orders.filter(o => o.status === 'delivered').length;
         const cancelled = orders.filter(o => o.status === 'cancelled').length;
-        const totalRevenue = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
-        const averageOrderValue = total > 0 ? totalRevenue / total : 0;
+        
+        // Only count revenue from delivered orders (successful transactions)
+        const revenueGeneratingOrders = orders.filter(o => 
+          o.status === 'delivered' || o.status === 'shipped' || o.status === 'processing'
+        );
+        const totalRevenue = revenueGeneratingOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+        const averageOrderValue = revenueGeneratingOrders.length > 0 ? totalRevenue / revenueGeneratingOrders.length : 0;
+        
+        // Calculate potential revenue from pending orders
+        const pendingOrders = orders.filter(o => o.status === 'pending');
+        const potentialRevenue = pendingOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+        
+        // Debug logging to check actual values
+        console.log('Revenue calculation debug:', {
+          totalRevenue,
+          potentialRevenue,
+          sampleOrder: revenueGeneratingOrders[0],
+          allOrders: orders.slice(0, 3)
+        });
 
         setStats({
           total,
@@ -61,6 +80,7 @@ const AdminOrderStats = () => {
           cancelled,
           totalRevenue,
           averageOrderValue,
+          potentialRevenue,
         });
       }
     } catch (error) {
@@ -71,10 +91,15 @@ const AdminOrderStats = () => {
   };
 
   const formatCurrency = (amount: number) => {
+    // If amount is very large (likely in paise), convert to rupees
+    // Assuming amounts over 1000 are in paise and need conversion
+    const displayAmount = amount > 1000 ? amount / 100 : amount;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-    }).format(amount);
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(displayAmount);
   };
 
   if (loading) {
@@ -110,13 +135,26 @@ const AdminOrderStats = () => {
 
       <Card>
         <CardHeader className="flex col-span-2 lg:col-span-1 flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium">Confirmed Revenue</CardTitle>
+          <DollarSign className="h-4 w-4 text-green-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
+          <div className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalRevenue)}</div>
           <p className="text-xs text-muted-foreground">
-            Avg: {formatCurrency(stats.averageOrderValue)}
+            Avg: {formatCurrency(stats.averageOrderValue)} (from completed orders)
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Potential Revenue</CardTitle>
+          <Clock className="h-4 w-4 text-orange-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-orange-600">{formatCurrency(stats.potentialRevenue)}</div>
+          <p className="text-xs text-muted-foreground">
+            From {stats.pending} pending orders
           </p>
         </CardContent>
       </Card>
