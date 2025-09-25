@@ -64,6 +64,8 @@ const AdminBannerManagement = () => {
     button_text: "Shop Now",
     button_link: "/shop",
     background_image: "",
+    mobile_image: "",
+    desktop_image: "",
     overlay_opacity: 30,
     text_color: "white",
     is_active: true,
@@ -96,6 +98,8 @@ const AdminBannerManagement = () => {
       button_text: "Shop Now",
       button_link: "/shop",
       background_image: "",
+      mobile_image: "",
+      desktop_image: "",
       overlay_opacity: 30,
       text_color: "white",
       is_active: true,
@@ -188,6 +192,8 @@ const AdminBannerManagement = () => {
       button_text: banner.button_text || "Shop Now",
       button_link: banner.button_link || "/shop",
       background_image: banner.background_image || "",
+      mobile_image: banner.mobile_image || "",
+      desktop_image: banner.desktop_image || "",
       overlay_opacity: banner.overlay_opacity || 30,
       text_color: banner.text_color || "white",
       is_active: banner.is_active,
@@ -233,8 +239,9 @@ const AdminBannerManagement = () => {
     }
   };
 
-  const handleMultipleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    imageType: 'mobile' | 'desktop'
   ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -242,21 +249,18 @@ const AdminBannerManagement = () => {
     setIsImageUploading(true);
 
     try {
-      const formData = new FormData();
+      const uploadFormData = new FormData();
       Array.from(files).forEach((file) => {
-        formData.append("files", file);
+        uploadFormData.append("files", file);
       });
 
       const response = await fetch(
         "https://tdzyskyjqobglueymvmx.supabase.co/functions/v1/upload-images",
         {
           method: "POST",
-          body: formData,
+          body: uploadFormData,
           headers: {
-            Authorization: `Bearer ${
-              import.meta.env.VITE_SUPABASE_ANON_KEY ||
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenlza3lqcW9iZ2x1ZXltdm14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjM4MzYsImV4cCI6MjA3MDEzOTgzNn0.5fQXZ2dJF30gPq_VtKmg4L-_fV5pOp5Pd56PU5mHcUM"
-            }`,
+            Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkenlza3lqcW9iZ2x1ZXltdm14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1NjM4MzYsImV4cCI6MjA3MDEzOTgzNn0.5fQXZ2dJF30gPq_VtKmg4L-_fV5pOp5Pd56PU5mHcUM"}`,
           },
         }
       );
@@ -269,8 +273,12 @@ const AdminBannerManagement = () => {
 
       if (result.success && result.uploaded.length > 0) {
         const imageUrl = result.uploaded[0].url;
-        setFormData((prev) => ({ ...prev, background_image: imageUrl }));
-        toast.success("Image uploaded successfully");
+        if (imageType === 'mobile') {
+          setFormData((prev) => ({ ...prev, mobile_image: imageUrl }));
+        } else {
+          setFormData((prev) => ({ ...prev, desktop_image: imageUrl }));
+        }
+        toast.success(`${imageType} image uploaded successfully`);
       } else {
         throw new Error("No images were uploaded successfully");
       }
@@ -391,8 +399,8 @@ const AdminBannerManagement = () => {
               </div>
 
               {/* Image Upload Section */}
-              <div className="space-y-4">
-                <Label>Banner Image</Label>
+              <div className="space-y-6">
+                <Label className="text-lg font-semibold">Banner Images</Label>
 
                 {/* Image Upload Method Toggle */}
                 <div className="flex space-x-2">
@@ -416,65 +424,121 @@ const AdminBannerManagement = () => {
                   </Button>
                 </div>
 
-                {/* Image URL Input */}
-                {imageUploadMethod === "url" && (
-                  <div>
+                {/* Mobile Image Section */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <Label className="font-medium flex items-center gap-2">
+                    📱 Mobile Image
+                    <span className="text-sm text-muted-foreground font-normal">
+                      (Optimized for phones)
+                    </span>
+                  </Label>
+
+                  {imageUploadMethod === "url" && (
                     <Input
-                      placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
-                      value={formData.background_image}
+                      placeholder="Enter mobile image URL"
+                      value={formData.mobile_image}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          background_image: e.target.value,
+                          mobile_image: e.target.value,
                         }))
                       }
                     />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Enter direct link to image (JPG, PNG, WebP supported)
-                    </p>
-                  </div>
-                )}
+                  )}
 
-                {/* File Upload */}
-                {imageUploadMethod === "file" && (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleMultipleFileUpload}
-                      className="hidden"
-                      id="banner-image-upload"
-                    />
-                    <label htmlFor="banner-image-upload" className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        {isImageUploading
-                          ? "Uploading..."
-                          : "Click to upload image"}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        JPG, PNG, WebP up to 5MB
-                      </p>
-                    </label>
-                  </div>
-                )}
+                  {imageUploadMethod === "file" && (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'mobile')}
+                        className="hidden"
+                        id="mobile-image-upload"
+                      />
+                      <label htmlFor="mobile-image-upload" className="cursor-pointer">
+                        <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">
+                          {isImageUploading ? "Uploading..." : "Upload mobile image"}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Portrait orientation recommended
+                        </p>
+                      </label>
+                    </div>
+                  )}
 
-                {/* Image Preview */}
-                {formData.background_image && (
-                  <div className="space-y-2">
-                    <Label>Image Preview</Label>
-                    <div className="relative">
+                  {formData.mobile_image && (
+                    <div className="space-y-2">
+                      <Label className="text-sm">Mobile Preview</Label>
                       <img
-                        src={formData.background_image}
-                        alt="Banner preview"
+                        src={formData.mobile_image}
+                        alt="Mobile banner preview"
+                        className="w-full max-w-48 h-32 object-cover rounded-lg border mx-auto"
+                        onError={(e) => {
+                          e.currentTarget.src = "/src/assets/hero-pet-1.jpg";
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Desktop Image Section */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <Label className="font-medium flex items-center gap-2">
+                    💻 Desktop Image
+                    <span className="text-sm text-muted-foreground font-normal">
+                      (For tablets & desktop)
+                    </span>
+                  </Label>
+
+                  {imageUploadMethod === "url" && (
+                    <Input
+                      placeholder="Enter desktop image URL"
+                      value={formData.desktop_image}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          desktop_image: e.target.value,
+                        }))
+                      }
+                    />
+                  )}
+
+                  {imageUploadMethod === "file" && (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'desktop')}
+                        className="hidden"
+                        id="desktop-image-upload"
+                      />
+                      <label htmlFor="desktop-image-upload" className="cursor-pointer">
+                        <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">
+                          {isImageUploading ? "Uploading..." : "Upload desktop image"}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Landscape orientation recommended
+                        </p>
+                      </label>
+                    </div>
+                  )}
+
+                  {formData.desktop_image && (
+                    <div className="space-y-2">
+                      <Label className="text-sm">Desktop Preview</Label>
+                      <img
+                        src={formData.desktop_image}
+                        alt="Desktop banner preview"
                         className="w-full h-32 object-cover rounded-lg border"
                         onError={(e) => {
                           e.currentTarget.src = "/src/assets/hero-pet-1.jpg";
                         }}
                       />
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -775,8 +839,8 @@ const AdminBannerManagement = () => {
               </div>
 
             {/* Image Upload Section */}
-            <div className="space-y-4">
-              <Label>Banner Image</Label>
+            <div className="space-y-6">
+              <Label className="text-lg font-semibold">Banner Images</Label>
 
               {/* Image Upload Method Toggle */}
               <div className="flex space-x-2">
@@ -800,68 +864,121 @@ const AdminBannerManagement = () => {
                 </Button>
               </div>
 
-              {/* Image URL Input */}
-              {imageUploadMethod === "url" && (
-                <div>
+              {/* Mobile Image Section */}
+              <div className="space-y-3 border rounded-lg p-4">
+                <Label className="font-medium flex items-center gap-2">
+                  📱 Mobile Image
+                  <span className="text-sm text-muted-foreground font-normal">
+                    (Optimized for phones)
+                  </span>
+                </Label>
+
+                {imageUploadMethod === "url" && (
                   <Input
-                    placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
-                    value={formData.background_image}
+                    placeholder="Enter mobile image URL"
+                    value={formData.mobile_image}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        background_image: e.target.value,
+                        mobile_image: e.target.value,
                       }))
                     }
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Enter direct link to image (JPG, PNG, WebP supported)
-                  </p>
-                </div>
-              )}
+                )}
 
-              {/* File Upload */}
-              {imageUploadMethod === "file" && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleMultipleFileUpload}
-                    className="hidden"
-                    id="edit-banner-image-upload"
-                  />
-                  <label
-                    htmlFor="edit-banner-image-upload"
-                    className="cursor-pointer"
-                  >
-                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
-                      {isImageUploading
-                        ? "Uploading..."
-                        : "Click to upload image"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      JPG, PNG, WebP up to 5MB
-                    </p>
-                  </label>
-                </div>
-              )}
+                {imageUploadMethod === "file" && (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, 'mobile')}
+                      className="hidden"
+                      id="edit-mobile-image-upload"
+                    />
+                    <label htmlFor="edit-mobile-image-upload" className="cursor-pointer">
+                      <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        {isImageUploading ? "Uploading..." : "Upload mobile image"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Portrait orientation recommended
+                      </p>
+                    </label>
+                  </div>
+                )}
 
-              {/* Image Preview */}
-              {formData.background_image && (
-                <div className="space-y-2">
-                  <Label>Image Preview</Label>
-                  <div className="relative">
+                {formData.mobile_image && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Mobile Preview</Label>
                     <img
-                      src={formData.background_image}
-                      alt="Banner preview"
+                      src={formData.mobile_image}
+                      alt="Mobile banner preview"
+                      className="w-full max-w-48 h-32 object-cover rounded-lg border mx-auto"
+                      onError={(e) => {
+                        e.currentTarget.src = "/src/assets/hero-pet-1.jpg";
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop Image Section */}
+              <div className="space-y-3 border rounded-lg p-4">
+                <Label className="font-medium flex items-center gap-2">
+                  💻 Desktop Image
+                  <span className="text-sm text-muted-foreground font-normal">
+                    (For tablets & desktop)
+                  </span>
+                </Label>
+
+                {imageUploadMethod === "url" && (
+                  <Input
+                    placeholder="Enter desktop image URL"
+                    value={formData.desktop_image}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        desktop_image: e.target.value,
+                      }))
+                    }
+                  />
+                )}
+
+                {imageUploadMethod === "file" && (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, 'desktop')}
+                      className="hidden"
+                      id="edit-desktop-image-upload"
+                    />
+                    <label htmlFor="edit-desktop-image-upload" className="cursor-pointer">
+                      <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">
+                        {isImageUploading ? "Uploading..." : "Upload desktop image"}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Landscape orientation recommended
+                      </p>
+                    </label>
+                  </div>
+                )}
+
+                {formData.desktop_image && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Desktop Preview</Label>
+                    <img
+                      src={formData.desktop_image}
+                      alt="Desktop banner preview"
                       className="w-full h-32 object-cover rounded-lg border"
                       onError={(e) => {
                         e.currentTarget.src = "/src/assets/hero-pet-1.jpg";
                       }}
                     />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

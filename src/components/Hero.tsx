@@ -44,10 +44,62 @@ const Hero = () => {
 
   const currentBanner = banners[currentBannerIndex];
 
+  // Get responsive image based on screen size using CSS classes instead of JS
+  const getMobileImage = (banner: Banner) => {
+    return banner.mobile_image || banner.background_image || banner.desktop_image;
+  };
+  
+  const getDesktopImage = (banner: Banner) => {
+    return banner.desktop_image || banner.background_image || banner.mobile_image;
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden w-full">
-      {/* Gradient Mesh Background */}
-      <div className="absolute inset-0 bg-gradient-mesh" />
+      {/* Dynamic Background Images - Responsive */}
+      {currentBanner && (getMobileImage(currentBanner) || getDesktopImage(currentBanner)) && (
+        <>
+          {/* Mobile Background */}
+          {getMobileImage(currentBanner) && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 md:hidden"
+              style={{
+                backgroundImage: `url(${getMobileImage(currentBanner)})`,
+              }}
+            >
+              {/* Mobile Overlay */}
+              <div 
+                className="absolute inset-0 bg-black transition-opacity duration-1000"
+                style={{ 
+                  opacity: (currentBanner.overlay_opacity || 30) / 100 
+                }}
+              />
+            </div>
+          )}
+          
+          {/* Desktop Background */}
+          {getDesktopImage(currentBanner) && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 hidden md:block"
+              style={{
+                backgroundImage: `url(${getDesktopImage(currentBanner)})`,
+              }}
+            >
+              {/* Desktop Overlay */}
+              <div 
+                className="absolute inset-0 bg-black transition-opacity duration-1000"
+                style={{ 
+                  opacity: (currentBanner.overlay_opacity || 30) / 100 
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Fallback Gradient Background */}
+      {(!currentBanner || (!getMobileImage(currentBanner) && !getDesktopImage(currentBanner))) && (
+        <div className="absolute inset-0 bg-gradient-mesh" />
+      )}
 
       {/* Dynamic Hero Carousel */}
       <HeroCarousel

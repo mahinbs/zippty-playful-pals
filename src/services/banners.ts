@@ -8,6 +8,8 @@ export interface Banner {
   button_text?: string;
   button_link?: string;
   background_image?: string;
+  mobile_image?: string;
+  desktop_image?: string;
   overlay_opacity?: number;
   text_color?: string;
   is_active: boolean;
@@ -23,6 +25,8 @@ export interface CreateBannerData {
   button_text?: string;
   button_link?: string;
   background_image?: string;
+  mobile_image?: string;
+  desktop_image?: string;
   overlay_opacity?: number;
   text_color?: string;
   is_active?: boolean;
