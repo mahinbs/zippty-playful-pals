@@ -54,7 +54,11 @@ const Hero = () => {
   };
 
   return (
+<<<<<<< HEAD
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden w-full">
+=======
+    <section className="relative flex items-center justify-center overflow-hidden w-full max-h-[80vh] md:max-h-max">
+>>>>>>> parent of f8e70fb (changes)
       {/* Dynamic Background Images - Responsive */}
       {currentBanner && (getMobileImage(currentBanner) || getDesktopImage(currentBanner)) && (
         <>
