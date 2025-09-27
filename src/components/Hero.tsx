@@ -54,7 +54,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative flex items-center justify-center overflow-hidden w-full max-h-[80vh] md:max-h-max">
+    <section className="relative flex items-center justify-center overflow-hidden w-full max-h-[80vh] md:max-h-max md:min-h-screen min-h-[80vh]">
       {/* Dynamic Background Images - Responsive */}
       {currentBanner && (getMobileImage(currentBanner) || getDesktopImage(currentBanner)) && (
         <>

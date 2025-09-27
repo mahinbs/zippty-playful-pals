@@ -79,7 +79,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
           </button>
           
           {/* Overlay on Hover */}
-          <div className={`absolute inset-0 bg-gradient-primary/20 backdrop-blur-sm transition-opacity duration-300 ${
+          <div className={`absolute inset-0 bg-gradient-primary/20 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`} />
         </div>
