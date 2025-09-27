@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle, ChevronLeft, ChevronRight, ArrowRight, Tag } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -61,6 +61,10 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
   const cartQuantity = getItemQuantity(product.id);
   const isInCartState = isInCart(product.id);
+  
+  // Calculate discount amount
+  const discountAmount = product.originalPrice ? product.originalPrice - product.price : 0;
+  const discountPercentage = product.originalPrice ? Math.round((discountAmount / product.originalPrice) * 100) : 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -186,14 +190,27 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
             </div>
 
             {/* Price */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <span className="text-2xl sm:text-3xl font-bold text-primary">
-                {formatPrice(product.price)}
-              </span>
-              {product.originalPrice && (
-                <span className="text-base sm:text-lg text-muted-foreground line-through">
-                  {formatPrice(product.originalPrice)}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl font-bold text-primary">
+                  {formatPrice(product.price)}
                 </span>
+                {product.originalPrice && (
+                  <span className="text-base sm:text-lg text-muted-foreground line-through">
+                    {formatPrice(product.originalPrice)}
+                  </span>
+                )}
+              </div>
+              {discountAmount > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 shadow-glow text-sm">
+                    <Tag className="h-3 w-3 mr-1" />
+                    Save {formatPrice(discountAmount)}
+                  </Badge>
+                  <span className="text-sm text-green-600 font-semibold">
+                    ({discountPercentage}% OFF)
+                  </span>
+                </div>
               )}
             </div>
 

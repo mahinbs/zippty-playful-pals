@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, CheckCircle, ArrowRight } from "lucide-react";
+import { Star, Heart, ShoppingCart, CheckCircle, ArrowRight, Tag } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart, Product } from "@/contexts/CartContext";
@@ -35,6 +35,10 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
   const cartQuantity = getItemQuantity(product.id);
   const isInCartState = isInCart(product.id);
   const isLiked = isInWishlist(product.id);
+  
+  // Calculate discount amount
+  const discountAmount = product.originalPrice ? product.originalPrice - product.price : 0;
+  const discountPercentage = product.originalPrice ? Math.round((discountAmount / product.originalPrice) * 100) : 0;
 
   return (
     <GlassCard 
@@ -113,7 +117,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
           </div>
           
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex items-center space-x-3">
                 <span className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                   {formatPrice(product.price)}
@@ -122,6 +126,17 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
                   <span className="text-xl text-muted-foreground line-through">{formatPrice(product.originalPrice)}</span>
                 )}
               </div>
+              {discountAmount > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1 shadow-glow">
+                    <Tag className="h-3 w-3 mr-1" />
+                    Save {formatPrice(discountAmount)}
+                  </Badge>
+                  <span className="text-sm text-green-600 font-semibold">
+                    ({discountPercentage}% OFF)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           
