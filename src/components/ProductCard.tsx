@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, CheckCircle } from "lucide-react";
+import { Star, Heart, ShoppingCart, CheckCircle, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart, Product } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { formatPrice } from "@/services/api";
@@ -17,6 +18,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { addItem, isInCart, getItemQuantity } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const navigate = useNavigate();
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
@@ -24,6 +26,10 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     addItem(product);
     setIsAddingToCart(false);
+  };
+
+  const handleGoToCart = () => {
+    navigate('/cart');
   };
 
   const cartQuantity = getItemQuantity(product.id);
@@ -63,7 +69,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
             {isInCartState && (
               <Badge className="bg-green-500 text-white shadow-glow">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                In Cart ({cartQuantity})
+                Go to Cart ({cartQuantity})
               </Badge>
             )}
           </div>
@@ -128,7 +134,7 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
               View Details
             </Button>
             <Button 
-              onClick={handleAddToCart}
+              onClick={isInCartState ? handleGoToCart : handleAddToCart}
               disabled={isAddingToCart}
               className={`flex-1 group bg-gradient-primary hover:shadow-glow text-white border-0 py-3 font-semibold rounded-xl transition-all duration-300 hover:scale-105 ${
                 isInCartState ? 'bg-green-600 hover:bg-green-700' : ''
@@ -141,8 +147,8 @@ const ProductCard = ({ product, onViewDetails }: ProductCardProps) => {
                 </>
               ) : isInCartState ? (
                 <>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  In Cart
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Go to Cart
                 </>
               ) : (
                 <>

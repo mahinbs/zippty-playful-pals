@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Heart, ShoppingCart, Minus, Plus, CheckCircle, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/ui/glass-card";
 import { useCart, Product } from "@/contexts/CartContext";
 import { formatPrice } from "@/services/api";
@@ -19,6 +20,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addItem, isInCart, getItemQuantity } = useCart();
+  const navigate = useNavigate();
 
   const images = product?.images || (product?.image ? [product.image] : []);
   const currentImage = images[currentImageIndex] || product?.image;
@@ -50,6 +52,11 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
     setIsAddingToCart(false);
   };
 
+  const handleGoToCart = () => {
+    onClose(); // Close the modal first
+    navigate('/cart');
+  };
+
   if (!product) return null;
 
   const cartQuantity = getItemQuantity(product.id);
@@ -57,21 +64,21 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-lg border-white/20">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-lg border-white/20 p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-foreground">
             {product.name}
           </DialogTitle>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
           {/* Product Image Gallery */}
           <div className="space-y-4">
             <div className="relative group">
               <img
                 src={currentImage}
                 alt={product.name}
-                className="w-full h-96 object-cover rounded-xl"
+                className="w-full h-64 sm:h-80 md:h-96 object-cover rounded-xl"
               />
               
               {/* Navigation arrows - only show if multiple images */}
@@ -124,19 +131,19 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
               {isInCartState && (
                 <Badge className="absolute top-20 left-4 bg-blue-500 text-white">
                   <CheckCircle className="h-3 w-3 mr-1" />
-                  In Cart ({cartQuantity})
+                  Go to Cart ({cartQuantity})
                 </Badge>
               )}
             </div>
             
             {/* Thumbnail gallery - only show if multiple images */}
             {images.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto">
+              <div className="flex space-x-2 overflow-x-auto pb-2">
                 {images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden border-2 transition-all ${
                       index === currentImageIndex
                         ? 'border-primary shadow-md'
                         : 'border-gray-200 hover:border-gray-300'
@@ -154,9 +161,9 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
           </div>
 
           {/* Product Details */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div>
-              <Badge variant="secondary" className="mb-2">
+              <Badge variant="secondary" className="mb-2 text-xs sm:text-sm">
                 {product.category}
               </Badge>
               <div className="flex items-center gap-2 mb-4">
@@ -164,7 +171,7 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-4 h-4 ${
+                      className={`w-3 h-3 sm:w-4 sm:h-4 ${
                         i < product.rating
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-muted-foreground"
@@ -172,19 +179,19 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                     />
                   ))}
                 </div>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs sm:text-sm text-muted-foreground">
                   ({product.reviews} reviews)
                 </span>
               </div>
             </div>
 
             {/* Price */}
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-primary">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="text-2xl sm:text-3xl font-bold text-primary">
                 {formatPrice(product.price)}
               </span>
               {product.originalPrice && (
-                <span className="text-lg text-muted-foreground line-through">
+                <span className="text-base sm:text-lg text-muted-foreground line-through">
                   {formatPrice(product.originalPrice)}
                 </span>
               )}
@@ -192,15 +199,15 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
 
             {/* Description */}
             <div>
-              <h3 className="font-semibold mb-2">Description</h3>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Description</h3>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
                 {product.description || "This premium pet product is designed to provide endless entertainment and engagement for your beloved pets. Crafted with high-quality materials and innovative technology."}
               </p>
             </div>
 
             {/* Features */}
             <div>
-              <h3 className="font-semibold mb-2">Key Features</h3>
+              <h3 className="font-semibold mb-2 text-sm sm:text-base">Key Features</h3>
               <ul className="space-y-1">
                 {(product.features || [
                   "Premium quality materials",
@@ -209,8 +216,8 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
                   "Easy to clean",
                   "Battery operated"
                 ]).map((feature, index) => (
-                  <li key={index} className="text-muted-foreground flex items-center">
-                    <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2" />
+                  <li key={index} className="text-muted-foreground flex items-center text-sm sm:text-base">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -218,54 +225,59 @@ const ProductDetailModal = ({ product, isOpen, onClose }: ProductDetailModalProp
             </div>
 
             {/* Quantity and Add to Cart */}
-            <GlassCard className="p-4 space-y-4">
+            <GlassCard className="p-3 sm:p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-medium">Quantity:</span>
-                <div className="flex items-center gap-3">
+                <span className="font-medium text-sm sm:text-base">Quantity:</span>
+                <div className="flex items-center gap-2 sm:gap-3">
                   <Button
                     variant="outline"
                     size="icon"
+                    className="w-8 h-8 sm:w-10 sm:h-10"
                     onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
-                  <span className="font-medium text-lg w-8 text-center">
+                  <span className="font-medium text-base sm:text-lg w-6 sm:w-8 text-center">
                     {quantity}
                   </span>
                   <Button
                     variant="outline"
                     size="icon"
+                    className="w-8 h-8 sm:w-10 sm:h-10"
                     onClick={() => handleQuantityChange(1)}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
               </div>
               
               <Button 
-                onClick={handleAddToCart}
+                onClick={isInCartState ? handleGoToCart : handleAddToCart}
                 disabled={isAddingToCart}
                 className={`w-full ${
                   isInCartState 
                     ? 'bg-green-600 hover:bg-green-700' 
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-                } text-white py-3 font-semibold transition-all duration-300 hover:scale-105 disabled:opacity-50`}
+                } text-white py-2 sm:py-3 font-semibold text-sm sm:text-base transition-all duration-300 hover:scale-105 disabled:opacity-50`}
               >
                 {isAddingToCart ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                    Adding to Cart...
+                    <span className="hidden sm:inline">Adding to Cart...</span>
+                    <span className="sm:hidden">Adding...</span>
                   </>
                 ) : isInCartState ? (
                   <>
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    In Cart ({cartQuantity})
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <span className="hidden sm:inline">Go to Cart ({cartQuantity})</span>
+                    <span className="sm:hidden">Go to Cart</span>
                   </>
                 ) : (
                   <>
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart
+                    <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <span className="hidden sm:inline">Add to Cart</span>
+                    <span className="sm:hidden">Add</span>
                   </>
                 )}
               </Button>
