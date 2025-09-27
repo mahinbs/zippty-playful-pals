@@ -54,29 +54,25 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative flex items-center justify-center overflow-hidden w-full max-h-[80vh] md:max-h-max md:min-h-screen min-h-[80vh]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden w-full">
       {/* Dynamic Background Images - Responsive */}
       {currentBanner && (getMobileImage(currentBanner) || getDesktopImage(currentBanner)) && (
         <>
-          {/* Mobile Background - 3:4 Aspect Ratio */}
+          {/* Mobile Background */}
           {getMobileImage(currentBanner) && (
-            <div className="absolute inset-0 flex items-center justify-center md:hidden">
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 md:hidden"
+              style={{
+                backgroundImage: `url(${getMobileImage(currentBanner)})`,
+              }}
+            >
+              {/* Mobile Overlay */}
               <div 
-                className="w-full max-w-sm bg-cover bg-center bg-no-repeat transition-all duration-1000"
-                style={{
-                  backgroundImage: `url(${getMobileImage(currentBanner)})`,
-                  aspectRatio: '3/4',
-                  maxHeight: '80vh'
+                className="absolute inset-0 bg-black transition-opacity duration-1000"
+                style={{ 
+                  opacity: (currentBanner.overlay_opacity || 30) / 100 
                 }}
-              >
-                {/* Mobile Overlay */}
-                <div 
-                  className="absolute inset-0 bg-black transition-opacity duration-1000 rounded-lg"
-                  style={{ 
-                    opacity: (currentBanner.overlay_opacity || 30) / 100 
-                  }}
-                />
-              </div>
+              />
             </div>
           )}
           

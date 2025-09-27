@@ -86,57 +86,29 @@ const HeroCarousel = ({
 
         return (
           <div key={index}>
-            <div className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 transform ${
-              index === currentBannerIndex
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-110"
-            }`}>
-              {/* Mobile Image - 3:4 Aspect Ratio */}
-              <img
-                src={image.mobSrc}
-                alt={image.alt}
-                className="w-full max-w-sm object-cover md:hidden"
-                style={{
-                  aspectRatio: '3/4',
-                  maxHeight: '80vh'
-                }}
-              />
-              {/* Desktop Image - Full Screen */}
-              <img
-                src={image.src}
-                alt={image.alt}
-                className="hidden md:block w-full h-full object-cover"
-                style={{
-                  minHeight: "100vh",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center center",
-                }}
-              />
-            </div>
+            <img
+              src={window.innerWidth < 768 ? image.mobSrc : image.src}
+              alt={image.alt}
+              className={`absolute inset-0 w-full h-full transition-all duration-1000 transform object-cover ${
+                index === currentBannerIndex
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-110"
+              }`}
+              style={{
+                minHeight: "100vh",
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center center",
+              }}
+            />
             {/* Dynamic Overlay based on banner settings */}
             <div
-              className={`absolute inset-0 flex items-center justify-center transition-all duration-1000 ${
+              className={`absolute inset-0 transition-all duration-1000 ${
                 index === currentBannerIndex ? "opacity-100" : "opacity-0"
               }`}
-            >
-              {/* Mobile Overlay - 3:4 Aspect Ratio */}
-              <div
-                className="w-full max-w-sm md:hidden"
-                style={{ 
-                  backgroundColor: overlayStyle,
-                  aspectRatio: '3/4',
-                  maxHeight: '80vh',
-                  borderRadius: '0.5rem'
-                }}
-              />
-              {/* Desktop Overlay - Full Screen */}
-              <div
-                className="hidden md:block absolute inset-0"
-                style={{ backgroundColor: overlayStyle }}
-              />
-            </div>
+              style={{ backgroundColor: overlayStyle }}
+            />
           </div>
         );
       })}
